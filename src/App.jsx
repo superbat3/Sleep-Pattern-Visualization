@@ -1,6 +1,7 @@
 import { useState } from "react";
 import SleepProfile from "./SleepProfile.jsx";
 import SlideDeck from "./SlideDeck.jsx";
+import { useDataset } from "./hooks/loadData.js";
 import { slides } from "./slides.jsx";
 
 import Box from "@mui/material/Box";
@@ -9,7 +10,6 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { grey } from "@mui/material/colors";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { useDataset } from "./hooks/loadData.js";
 
 const theme = createTheme({
   palette: {
@@ -22,6 +22,8 @@ const theme = createTheme({
 export default function App() {
   const [mode, setMode] = useState("slides");
   const [slideIndex, setSlideIndex] = useState(0);
+
+  const { data, loading, error } = useDataset(); 
 
   return (
     <ThemeProvider theme={theme}>
@@ -64,10 +66,15 @@ export default function App() {
                 onFinish={() => setMode("dashboard")}
                 onSlideChange={setSlideIndex}
               />
+            ) : error ? (
+              <div style={{ padding: 16 }}>Failed to load dataset.</div>
             ) : (
-              <SleepProfile guidedContent={slides[slideIndex]} />
+              <SleepProfile
+                data={data}
+                guidedContent={slides[slideIndex]}
+                loading={loading}
+              />
             )}
-
           </Box>
         </Stack>
       </Box>
