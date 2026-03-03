@@ -35,7 +35,7 @@ function Placeholder({ label }) {
   return <Box className="sp-placeholder">{label}</Box>;
 }
 
-export default function SleepProfile({ data, guidedContent }) {
+export default function SleepProfile({ data }) {
   const [occupation, setOccupation] = useState("Software Engineer");
   const [gender, setGender] = useState("All");
   const [age, setAge] = useState("All");
