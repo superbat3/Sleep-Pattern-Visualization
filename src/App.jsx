@@ -9,6 +9,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { grey } from "@mui/material/colors";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { useDataset } from "./hooks/loadData.js";
 
 const theme = createTheme({
   palette: {
@@ -66,6 +67,7 @@ export default function App() {
             ) : (
               <SleepProfile guidedContent={slides[slideIndex]} />
             )}
+
           </Box>
         </Stack>
       </Box>
