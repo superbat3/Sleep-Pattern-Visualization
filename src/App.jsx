@@ -22,8 +22,6 @@ const theme = createTheme({
 export default function App() {
   const [mode, setMode] = useState("slides");
   const [slideIndex, setSlideIndex] = useState(0);
-  
-  const data = useDataset();
 
   return (
     <ThemeProvider theme={theme}>
@@ -66,13 +64,8 @@ export default function App() {
                 onFinish={() => setMode("dashboard")}
                 onSlideChange={setSlideIndex}
               />
-            ) : data ? (
-              <SleepProfile 
-                data={data}
-                guidedContent={slides[slideIndex]}
-              />
             ) : (
-              <div style={{ padding: 20 }}>Loading dataset...</div>
+              <SleepProfile guidedContent={slides[slideIndex]} />
             )}
 
           </Box>
