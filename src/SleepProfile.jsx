@@ -8,6 +8,16 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 
 import DistributionHist from "./DistributionHist";
+import SankeyFlow from "./SankeyFlow";
+
+const EMPTY_DATA = [];
+const ALLOWED_OCCUPATIONS = [
+  "Software Engineer",
+  "Accountant",
+  "Scientist",
+  "Teacher",
+  "Salesperson",
+];
 
 function Tile({ icon, label, value, sub, tone = "normal" }) {
   return (
@@ -33,10 +43,6 @@ function Panel({ title, children }) {
   );
 }
 
-function Placeholder({ label }) {
-  return <Box className="sp-placeholder">{label}</Box>;
-}
-
 function RowLabel({ title }) {
   return (
     <Box sx={{ px: 0.25, pt: 0.5, pb: 0.25 }}>
@@ -47,41 +53,52 @@ function RowLabel({ title }) {
   );
 }
 
+function matchesAgeBucket(ageValue, ageBucket) {
+  if (ageBucket === "All") return true;
+
+  const normalized = String(ageBucket).replace(/[–—]/g, "-");
+  const ageRanges = {
+    "18-24": [18, 24],
+    "25-40": [25, 40],
+    "41-60": [41, 60],
+    "60+": [60, 200],
+  };
+
+  const [min, max] = ageRanges[normalized] ?? [];
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return true;
+
+  return Number.isFinite(ageValue) && ageValue >= min && ageValue <= max;
+}
+
 export default function SleepProfile({ data }) {
   const [occupation, setOccupation] = useState("Software Engineer");
   const [gender, setGender] = useState("All");
   const [age, setAge] = useState("All");
 
-  const safeData = data ?? [];
+  const safeData = data ?? EMPTY_DATA;
+  const scopedData = useMemo(
+    () => safeData.filter((d) => ALLOWED_OCCUPATIONS.includes(d.occupation)),
+    [safeData],
+  );
 
-  const occupations = useMemo(() => [...new Set(safeData.map((d) => d.occupation))], [safeData]);
+  const occupations = ALLOWED_OCCUPATIONS;
   const genders = useMemo(() => ["All", ...new Set(safeData.map((d) => d.gender))], [safeData]);
+  const selectedOccupation = occupations.includes(occupation)
+    ? occupation
+    : ALLOWED_OCCUPATIONS[0];
 
-  const filtered = useMemo(() => {
-    if (!safeData.length) return [];
+  const demographicFiltered = useMemo(() => {
+    if (!scopedData.length) return [];
 
-    return safeData
-      .filter((d) => d.occupation === occupation)
+    return scopedData
       .filter((d) => gender === "All" || d.gender === gender)
-      .filter((d) => {
-        if (age === "All") return true;
+      .filter((d) => matchesAgeBucket(d.age, age));
+  }, [scopedData, gender, age]);
 
-        const normalized = String(age).replace(/[–—]/g, "-");
-
-        const ageRanges = {
-          "18-24": [18, 24],
-          "25-40": [25, 40],
-          "41-60": [41, 60],
-          "60+": [60, 200],
-        };
-
-        const range = ageRanges[normalized];
-        if (!range) return true;
-
-        const [min, max] = range;
-        return d.age >= min && d.age <= max;
-      });
-  }, [safeData, occupation, gender, age]);
+  const filtered = useMemo(
+    () => demographicFiltered.filter((d) => d.occupation === selectedOccupation),
+    [demographicFiltered, selectedOccupation],
+  );
 
   const avg = (arr) =>
     arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : "—";
@@ -143,7 +160,7 @@ export default function SleepProfile({ data }) {
             <TextField
               select
               size="small"
-              value={occupation}
+              value={selectedOccupation}
               onChange={(e) => setOccupation(e.target.value)}
               className="sp-select"
             >
@@ -192,11 +209,8 @@ export default function SleepProfile({ data }) {
           <Typography className="sp-caret">▾</Typography>
         </Box>
 
-        <Grid
-          container
-          spacing={1.5}
-          sx={{ p: 1.5, height: "calc(100% - 56px)", alignContent: "flex-start" }}
-        >
+        <Box className="sp-body">
+          <Grid container spacing={1.5} sx={{ alignContent: "flex-start" }}>
           <Grid size={12}>
             <RowLabel title="Sleep indicators" />
           </Grid>
@@ -264,16 +278,25 @@ export default function SleepProfile({ data }) {
           </Grid>
 
           <Grid size={{ xs: 12, md: 8 }} sx={{ minHeight: 0 }}>
-            <Grid container spacing={1.5} sx={{ height: "100%" }}>
+            <Grid container spacing={1.5}>
               <Grid size={12} sx={{ minHeight: 0 }}>
-                <Panel title="Lifestyle">
-                  <Placeholder label="Lifestyle arc / distribution placeholder" />
+                <Panel title="Sankey: Occupation -> Stress -> Sleep">
+                  <SankeyFlow
+                    data={demographicFiltered}
+                    selectedOccupation={selectedOccupation}
+                    onSelectOccupation={setOccupation}
+                    height={220}
+                  />
+                  <Box className="sp-sankey-note">
+                    Stress buckets: Low 3-4, Medium 5-6, High 7-8. Sleep buckets: Short &lt; 6.5h,
+                    Normal 6.5-8h, Long &gt; 8h.
+                  </Box>
                 </Panel>
               </Grid>
 
               <Grid size={12} sx={{ minHeight: 0 }}>
                 <Panel title="Sleep Duration Distribution">
-                  <Box sx={{ height: 260 }}>
+                  <Box sx={{ height: 220 }}>
                     <DistributionHist
                       data={filtered}
                       valueKey="sleepDuration"
@@ -315,11 +338,12 @@ export default function SleepProfile({ data }) {
               </Box>
 
               <Box className="sp-footnote">
-                Mock selection: <b>{occupation}</b>, Gender <b>{gender}</b>, Age <b>{age}</b>
+                Mock selection: <b>{selectedOccupation}</b>, Gender <b>{gender}</b>, Age <b>{age}</b>
               </Box>
             </Panel>
           </Grid>
-        </Grid>
+          </Grid>
+        </Box>
       </Box>
     </Box>
   );
