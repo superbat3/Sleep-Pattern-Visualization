@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import * as d3 from "d3";
 
 const STRESS_ORDER = ["Low", "Medium", "High"];
 const SLEEP_ORDER = ["Short", "Normal", "Long"];
@@ -388,19 +389,44 @@ export default function SankeyFlow({
           return (
             <g key={flow.id}>
               <path
-                d={occPath}
-                fill="none"
-                stroke={flow.color}
-                strokeWidth={flow.dy}
-                strokeOpacity={opacity}
-              />
-              <path
-                d={sleepPath}
-                fill="none"
-                stroke={flow.color}
-                strokeWidth={flow.dy}
-                strokeOpacity={opacity}
-              />
+               ref={(el) => {
+                if (!el) return;
+                const length = el.getTotalLength();
+                
+                d3.select(el)
+                 .attr("stroke-dasharray", length)
+                 .attr("stroke-dashoffset", length)
+                 .transition()
+                 .duration(200)
+                 .ease(d3.easeCubic)
+                 .attr("stroke-dashoffset", 0);
+              }}
+              d={occPath}
+              fill="none"
+              stroke={flow.color}
+              strokeWidth={flow.dy}
+              strokeOpacity={opacity}
+            />
+            <path
+             ref={(el) => {
+              if (!el) return;
+              
+              const length = el.getTotalLength();
+
+              d3.select(el)
+               .attr("stroke-dasharray", length)
+               .attr("stroke-dashoffset", length)
+               .transition()
+               .duration(200)
+               .ease(d3.easeCubic)
+               .attr("stroke-dashoffset", 0);
+            }}
+            d={sleepPath}
+            fill="none"
+            stroke={flow.color}
+            strokeWidth={flow.dy}
+            strokeOpacity={opacity}
+            />
 
               <path
                 d={occPath}

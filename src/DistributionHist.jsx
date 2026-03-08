@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import * as d3 from "d3";
 
 function clamp(v, lo, hi) {
   return Math.max(lo, Math.min(hi, v));
@@ -31,6 +32,7 @@ export default function DistributionHist({
   bins = 12,
 }) {
   const wrapRef = useRef(null);
+  const svgRef = useRef(null);
   const { width } = useResizeObserver(wrapRef);
 
   const values = useMemo(() => {
@@ -77,10 +79,38 @@ export default function DistributionHist({
 
   const barW = counts.length ? innerW / counts.length : 0;
   const xLabelEvery = counts.length > 12 ? 2 : 1;
+  // D3 Animation
+  useEffect(() => {
+    if (!svgRef.current) return;
+
+    const svg = d3.select(svgRef.current);
+    const bars = svg.selectAll(".hist-bar");
+
+    bars
+      .attr("y", pad.top + innerH)
+      .attr("height", 0);
+
+    bars
+      .transition()
+      .duration(650)
+      .ease(d3.easeCubicOut)
+      .delay((_, i) => i * 25)
+      .attr("y", function () {
+        return this.getAttribute("data-y");
+      })
+      .attr("height", function () {
+        return this.getAttribute("data-h");
+      });
+  }, [counts, width, innerH]);
 
   return (
     <div ref={wrapRef} style={{ width: "100%", height: "100%" }}>
-      <svg width="100%" height={height} viewBox={`0 0 ${Math.max(1, width || 1)} ${height}`}>
+      <svg
+        ref={svgRef}
+        width="100%"
+        height={height}
+        viewBox={`0 0 ${Math.max(1, width || 1)} ${height}`}
+      >
         <text x={pad.left} y={18} fontSize="13" fontWeight="700" opacity="0.9">
           {title}
         </text>
@@ -114,14 +144,15 @@ export default function DistributionHist({
           return (
             <g key={i}>
               <rect
+                className="hist-bar"
                 x={x}
-                y={y}
                 width={w}
-                height={h}
                 rx="6"
                 ry="6"
                 fill="#00008B"
                 opacity="0.9"
+                data-y={y}
+                data-h={h}
               />
               <title>
                 {`${edges[i].toFixed(1)}–${edges[i + 1].toFixed(1)} h: ${cnt}`}
@@ -147,6 +178,29 @@ export default function DistributionHist({
               </text>
             );
           })}
+
+        <text
+        x={pad.left + innerW / 2}
+        y={pad.top + innerH + 32}
+        fontSize="9"
+        fontWeight="600"
+        textAnchor="middle"
+        opacity="0.85"
+      >
+        Sleep Duration (hours)
+      </text>
+
+      <text
+      x={pad.left - 32}
+      y={pad.top + innerH / 2}
+      fontSize="13"
+      fontWeight="600"
+      textAnchor="middle"
+      opacity="0.85"
+      transform={`rotate(-90, ${pad.left - 32}, ${pad.top + innerH / 2})`}
+    >
+      Count
+    </text>
 
         <text x={10} y={pad.top + innerH} fontSize="12" fontWeight="600" opacity="0.75">
           0

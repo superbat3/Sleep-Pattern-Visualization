@@ -12,11 +12,12 @@ import SankeyFlow from "./SankeyFlow";
 
 const EMPTY_DATA = [];
 const ALLOWED_OCCUPATIONS = [
-  "Software Engineer",
+  "Engineer",
   "Accountant",
-  "Scientist",
+  "Lawyer",
   "Teacher",
   "Salesperson",
+  "Doctor"
 ];
 
 function Tile({ icon, label, value, sub, tone = "normal" }) {
