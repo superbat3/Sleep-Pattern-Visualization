@@ -1,0 +1,173 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import * as d3 from "d3";
+
+function useResizeObserver(ref) {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const update = () => {
+      const rect = el.getBoundingClientRect();
+      setSize({ width: rect.width, height: rect.height });
+    };
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+
+    window.addEventListener("resize", update);
+    update();
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [ref]);
+
+  return size;
+}
+
+export default function ScatterPlot({ data }) {
+  const wrapRef = useRef(null);
+  const svgRef = useRef(null);
+  const { width } = useResizeObserver(wrapRef);
+
+  const height = 260;
+  const pad = { top: 28, right: 20, bottom: 40, left: 50 };
+
+  const innerW = Math.max(0, (width || 0) - pad.left - pad.right);
+  const innerH = height - pad.top - pad.bottom;
+
+  const points = useMemo(() => {
+    if (!Array.isArray(data)) return [];
+    return data.map((d) => ({
+      sleep: +d.sleepDuration,
+      stress: +d.stress,
+      occupation: d.occupation,
+    }));
+  }, [data]);
+
+  const x = d3
+    .scaleLinear()
+    .domain([0, d3.max(points, (d) => d.stress) || 10])
+    .nice()
+    .range([0, innerW]);
+
+  const y = d3
+    .scaleLinear()
+    .domain([0, d3.max(points, (d) => d.sleep) || 10])
+    .nice()
+    .range([innerH, 0]);
+
+  useEffect(() => {
+    if (!svgRef.current) return;
+
+    const svg = d3.select(svgRef.current);
+
+    const dots = svg
+      .selectAll("circle.dot")
+      .data(points, (_, i) => i);
+
+    dots
+      .enter()
+      .append("circle")
+      .attr("class", "dot")
+      .attr("cx", () => pad.left + innerW / 2)
+      .attr("cy", () => pad.top + innerH / 2)
+      .attr("r", 0)
+      .attr("fill", "#00008B")
+      .attr("opacity", 0.7)
+      .transition()
+      .duration(600)
+      .ease(d3.easeCubicOut)
+      .attr("cx", (d) => pad.left + x(d.stress))
+      .attr("cy", (d) => pad.top + y(d.sleep))
+      .attr("r", 4);
+
+    dots
+      .transition()
+      .duration(600)
+      .attr("cx", (d) => pad.left + x(d.stress))
+      .attr("cy", (d) => pad.top + y(d.sleep));
+
+    dots.exit().remove();
+  }, [points, width, innerW, innerH]);
+
+  return (
+    <div ref={wrapRef} style={{ width: "100%", height: "100%" }}>
+      <svg
+        ref={svgRef}
+        width="100%"
+        height={height}
+        viewBox={`0 0 ${Math.max(1, width || 1)} ${height}`}
+      >
+        <text x={pad.left} y={20} fontSize="14" fontWeight="700" opacity="0.9">
+          Sleep vs. Stress
+        </text>
+
+        <line
+          x1={pad.left}
+          y1={pad.top + innerH}
+          x2={pad.left + innerW}
+          y2={pad.top + innerH}
+          stroke="currentColor"
+          opacity="0.35"
+        />
+        <text
+          x={pad.left + innerW / 2}
+          y={pad.top + innerH + 32}
+          fontSize="12"
+          textAnchor="middle"
+          opacity="0.75"
+        >
+          Stress Level
+        </text>
+
+        <line
+          x1={pad.left}
+          y1={pad.top}
+          x2={pad.left}
+          y2={pad.top + innerH}
+          stroke="currentColor"
+          opacity="0.35"
+        />
+        <text
+          x={pad.left - 10}
+          y={pad.top - 6}
+          fontSize="12"
+          textAnchor="end"
+          opacity="0.75"
+        >
+          Sleep (hrs)
+        </text>
+
+        {x.ticks(5).map((t, i) => (
+          <text
+            key={i}
+            x={pad.left + x(t)}
+            y={pad.top + innerH + 20}
+            fontSize="11"
+            textAnchor="middle"
+            opacity="0.6"
+          >
+            {t}
+          </text>
+        ))}
+
+        {y.ticks(5).map((t, i) => (
+          <text
+            key={i}
+            x={pad.left - 8}
+            y={pad.top + y(t) + 4}
+            fontSize="11"
+            textAnchor="end"
+            opacity="0.6"
+          >
+            {t}
+          </text>
+        ))}
+      </svg>
+    </div>
+  );
+}
