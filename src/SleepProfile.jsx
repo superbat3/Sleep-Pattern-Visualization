@@ -10,6 +10,7 @@ import Typography from "@mui/material/Typography";
 
 import DistributionHist from "./DistributionHist";
 import SankeyFlow from "./SankeyFlow";
+import ScatterPlot from "./ScatterPlot";
 
 const EMPTY_DATA = [];
 const ALLOWED_OCCUPATIONS = [
@@ -19,6 +20,7 @@ const ALLOWED_OCCUPATIONS = [
   "Teacher",
   "Salesperson",
   "Doctor",
+  "Nurse"
 ];
 
 function Tile({ icon, label, value, sub, tone = "normal" }) {
@@ -194,7 +196,11 @@ export default function SleepProfile({ data }) {
     },
     {
       title: "Sleep Scatterplot",
-      content: <PlaceholderView label="Scatterplot placeholder" />,
+      content: (
+      <Box sx={{ height: 220 }}>
+        <ScatterPlot data={scopedData} />
+        </Box>
+      ),
     },
     {
       title: "Third View",

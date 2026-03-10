@@ -31,6 +31,8 @@ function useResizeObserver(ref) {
 export default function ScatterPlot({ data }) {
   const wrapRef = useRef(null);
   const svgRef = useRef(null);
+  const tooltipRef = useRef(null);
+
   const { width } = useResizeObserver(wrapRef);
 
   const height = 260;
@@ -39,35 +41,48 @@ export default function ScatterPlot({ data }) {
   const innerW = Math.max(0, (width || 0) - pad.left - pad.right);
   const innerH = height - pad.top - pad.bottom;
 
-  const points = useMemo(() => {
+
+    const jitter = (amt) => (Math.random() - 0.5) * amt;
+
+    const points = useMemo(() => {
     if (!Array.isArray(data)) return [];
     return data.map((d) => ({
-      sleep: +d.sleepDuration,
-      stress: +d.stress,
-      occupation: d.occupation,
+        sleep: +d.sleepDuration + jitter(0.25),
+        stress: +d.stress + jitter(0.25),
+        occupation: d.occupation,
     }));
-  }, [data]);
+    }, [data]);
 
-  const x = d3
-    .scaleLinear()
-    .domain([0, d3.max(points, (d) => d.stress) || 10])
-    .nice()
-    .range([0, innerW]);
+    const color = d3.scaleOrdinal()
+    .domain([...new Set(points.map(d => d.occupation))])
+    .range(d3.schemeTableau10);
 
-  const y = d3
-    .scaleLinear()
-    .domain([0, d3.max(points, (d) => d.sleep) || 10])
-    .nice()
-    .range([innerH, 0]);
+
+const maxStress = (d3.max(points, d => d.stress) ?? 10) + 0.5;
+const minStress = (d3.min(points, d => d.stress) ?? 0) - 0.5;
+
+const maxSleep = (d3.max(points, d => d.sleep) ?? 10) + 0.5;
+const minSleep = (d3.min(points, d => d.sleep) ?? 0) - 0.5;
+
+
+const x = d3.scaleLinear()
+  .domain([minStress, maxStress])
+  .range([0, innerW]);
+
+const y = d3.scaleLinear()
+  .domain([minSleep, maxSleep])
+  .range([innerH, 0]);
+
+
 
   useEffect(() => {
-    if (!svgRef.current) return;
+    if (!svgRef.current || !tooltipRef.current) return;
+    if (!width || width === 0) return; 
 
     const svg = d3.select(svgRef.current);
+    const tooltip = d3.select(tooltipRef.current);
 
-    const dots = svg
-      .selectAll("circle.dot")
-      .data(points, (_, i) => i);
+    const dots = svg.selectAll("circle.dot").data(points, (_, i) => i);
 
     dots
       .enter()
@@ -76,8 +91,23 @@ export default function ScatterPlot({ data }) {
       .attr("cx", () => pad.left + innerW / 2)
       .attr("cy", () => pad.top + innerH / 2)
       .attr("r", 0)
-      .attr("fill", "#00008B")
-      .attr("opacity", 0.7)
+      .attr("fill", (d) => color(d.occupation))
+      .attr("stroke", "white")
+      .attr("stroke-width", 1)
+      .attr("opacity", 0.85)
+      .on("mousemove", function (event, d) {
+        tooltip
+          .style("opacity", 1)
+          .style("left", event.offsetX + 12 + "px")
+          .style("top", event.offsetY + 12 + "px")
+          .html(`
+            <div><strong>${d.occupation}</strong></div>
+            Sleep: ${d.sleep.toFixed(1)} hrs
+            Stress: ${d.stress.toFixed(1)}
+
+          `);
+      })
+      .on("mouseleave", () => tooltip.style("opacity", 0))
       .transition()
       .duration(600)
       .ease(d3.easeCubicOut)
@@ -86,6 +116,18 @@ export default function ScatterPlot({ data }) {
       .attr("r", 4);
 
     dots
+      .on("mousemove", function (event, d) {
+        tooltip
+          .style("opacity", 1)
+          .style("left", event.offsetX + 12 + "px")
+          .style("top", event.offsetY + 12 + "px")
+          .html(`
+            <div><strong>${d.occupation}</strong></div>
+            <div>Sleep: ${d.sleep} hrs</div>
+            <div>Stress: ${d.stress}</div>
+          `);
+      })
+      .on("mouseleave", () => tooltip.style("opacity", 0))
       .transition()
       .duration(600)
       .attr("cx", (d) => pad.left + x(d.stress))
@@ -94,8 +136,60 @@ export default function ScatterPlot({ data }) {
     dots.exit().remove();
   }, [points, width, innerW, innerH]);
 
+  if (!width || width === 0) {
+    return <div ref={wrapRef} style={{ width: "100%", height: "100%", position: "relative" }} />;
+  }
+
+
   return (
-    <div ref={wrapRef} style={{ width: "100%", height: "100%" }}>
+    <div ref={wrapRef} style={{ width: "100%", height: "100%", position: "relative" }}>
+      <div
+        ref={tooltipRef}
+        style={{
+          position: "absolute",
+          pointerEvents: "none",
+          background: "rgba(0,0,0,0.75)",
+          color: "white",
+          padding: "6px 8px",
+          borderRadius: "4px",
+          fontSize: "12px",
+          opacity: 0,
+          transition: "opacity 0.15s",
+        }}
+      />
+
+        <div
+            style={{
+                position: "absolute",
+                top: 4,
+                right: 4,
+                background: "rgba(255,255,255,0.9)",
+                padding: "6px 10px",
+                borderRadius: "6px",
+                fontSize: "11px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                maxHeight: "80%",
+                overflowY: "auto",
+            }}
+            >
+            {color.domain().map((occ, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 4 }}>
+                <div
+                    style={{
+                    width: 10,
+                    height: 10,
+                    background: color(occ),
+                    borderRadius: "50%",
+                    marginRight: 6,
+                    border: "1px solid #fff",
+                    }}
+                />
+                <span>{occ}</span>
+                </div>
+            ))}
+</div>
+
+
       <svg
         ref={svgRef}
         width="100%"
