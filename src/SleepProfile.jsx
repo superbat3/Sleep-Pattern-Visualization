@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import "./SleepProfile.css";
 
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 import MenuItem from "@mui/material/MenuItem";
@@ -103,8 +104,8 @@ function matchesAgeBucket(ageValue, ageBucket) {
   return Number.isFinite(ageValue) && ageValue >= min && ageValue <= max;
 }
 
-export default function SleepProfile({ data }) {
-  const [occupation, setOccupation] = useState("Software Engineer");
+export default function SleepProfile({ data, onEnterCompare }) {
+  const [occupation, setOccupation] = useState("Doctor");
   const [gender, setGender] = useState("All");
   const [age, setAge] = useState("All");
   const [distributionViewIndex, setDistributionViewIndex] = useState(0);
@@ -117,13 +118,10 @@ export default function SleepProfile({ data }) {
 
   const occupations = ALLOWED_OCCUPATIONS;
   const genders = useMemo(() => ["All", ...new Set(safeData.map((d) => d.gender))], [safeData]);
-  const selectedOccupation = occupations.includes(occupation)
-    ? occupation
-    : ALLOWED_OCCUPATIONS[0];
+  const selectedOccupation = occupations.includes(occupation) ? occupation : ALLOWED_OCCUPATIONS[0];
 
   const demographicFiltered = useMemo(() => {
     if (!scopedData.length) return [];
-
     return scopedData
       .filter((d) => gender === "All" || d.gender === gender)
       .filter((d) => matchesAgeBucket(d.age, age));
@@ -148,6 +146,7 @@ export default function SleepProfile({ data }) {
   const bmiMap = {
     Underweight: 18,
     Normal: 22,
+    "Normal Weight": 22,
     Overweight: 27,
     Obese: 32,
   };
@@ -270,7 +269,25 @@ export default function SleepProfile({ data }) {
             </TextField>
           </Box>
 
-          <Typography className="sp-caret">▾</Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button
+              variant="text"
+              onClick={onEnterCompare}
+              sx={{
+                color: "#ff6b6b",
+                fontWeight: 800,
+                textTransform: "none",
+                whiteSpace: "nowrap",
+                "&:hover": {
+                  textDecoration: "underline",
+                  backgroundColor: "transparent",
+                },
+              }}
+            >
+              Enter your own information to compare
+            </Button>
+            <Typography className="sp-caret">▾</Typography>
+          </Box>
         </Box>
 
         <Box className="sp-body">
@@ -362,21 +379,21 @@ export default function SleepProfile({ data }) {
                   <Panel
                     title={currentDistributionView.title}
                     headerAction={
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Box className="sp-panel-nav">
                         <IconButton
                           size="small"
                           onClick={() => cycleDistributionView(-1)}
-                          sx={{ color: "#33435d" }}
+                          className="sp-panel-arrow"
                         >
                           ←
                         </IconButton>
-                        <Typography sx={{ fontSize: 12, opacity: 0.75 }}>
+                        <Typography className="sp-panel-page">
                           {distributionViewIndex + 1}/{distributionViews.length}
                         </Typography>
                         <IconButton
                           size="small"
                           onClick={() => cycleDistributionView(1)}
-                          sx={{ color: "#33435d" }}
+                          className="sp-panel-arrow"
                         >
                           →
                         </IconButton>

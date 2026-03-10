@@ -1,4 +1,6 @@
 import { useState } from "react";
+import ComparisonInput from "./ComparisonInput.jsx";
+import ComparisonView from "./ComparisonView.jsx";
 import SleepProfile from "./SleepProfile.jsx";
 import SlideDeck from "./SlideDeck.jsx";
 import { useDataset } from "./hooks/loadData.js";
@@ -22,6 +24,7 @@ const theme = createTheme({
 export default function App() {
   const [mode, setMode] = useState("slides");
   const [slideIndex, setSlideIndex] = useState(0);
+  const [userInput, setUserInput] = useState(null);
 
   const { data, loading, error } = useDataset();
   const slideData = slides(data);
@@ -44,7 +47,13 @@ export default function App() {
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 900 }}>
-              {mode === "slides" ? "Guided Mode" : "Explore Mode"}
+              {mode === "slides"
+                ? "Guided Mode"
+                : mode === "dashboard"
+                ? "Explore Mode"
+                : mode === "input"
+                ? "Input Mode"
+                : "Comparison Mode"}
             </Typography>
 
             <Box sx={{ display: "flex", gap: 1 }}>
@@ -52,30 +61,54 @@ export default function App() {
                 <Button variant="outlined" onClick={() => setMode("dashboard")}>
                   Skip to Dashboard
                 </Button>
-              ) : (
+              ) : mode === "dashboard" ? (
                 <Button variant="outlined" onClick={() => setMode("slides")}>
                   Back to Slides
+                </Button>
+              ) : (
+                <Button variant="outlined" onClick={() => setMode("dashboard")}>
+                  Back to Dashboard
                 </Button>
               )}
             </Box>
           </Box>
 
           <Box sx={{ flex: "1 1 auto", minHeight: 0 }}>
-            {mode === "slides" ? (
+            {error ? (
+              <div style={{ padding: 16 }}>Failed to load dataset.</div>
+            ) : mode === "slides" ? (
               <SlideDeck
                 slides={slideData}
                 onFinish={() => setMode("dashboard")}
                 onSlideChange={setSlideIndex}
               />
-            ) : error ? (
-              <div style={{ padding: 16 }}>Failed to load dataset.</div>
-            ) : loading ? (
-              <div style={{ padding: 16 }}>Loading...</div>
+            ) : mode === "dashboard" ? (
+              loading ? (
+                <div style={{ padding: 16 }}>Loading...</div>
+              ) : (
+                <SleepProfile
+                  data={data}
+                  guidedContent={slideData[slideIndex]}
+                  loading={loading}
+                  onEnterCompare={() => setMode("input")}
+                />
+              )
+            ) : mode === "input" ? (
+              <ComparisonInput
+                initialValues={userInput}
+                onBack={() => setMode("dashboard")}
+                onSubmit={(values) => {
+                  setUserInput(values);
+                  setMode("compare");
+                }}
+              />
             ) : (
-              <SleepProfile
+              <ComparisonView
                 data={data}
-                guidedContent={slideData[slideIndex]}
                 loading={loading}
+                userInput={userInput}
+                onBackDashboard={() => setMode("dashboard")}
+                onEditInput={() => setMode("input")}
               />
             )}
           </Box>
