@@ -51,8 +51,8 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
 
     if (isBlank(values.sleepDuration)) {
       nextErrors.sleepDuration = "Required";
-    } else if (!Number.isFinite(sleepDuration) || sleepDuration <= 0 || sleepDuration >= 18) {
-      nextErrors.sleepDuration = "Enter a value greater than 0 and less than 18";
+    } else if (!Number.isFinite(sleepDuration) || sleepDuration <= 0 || sleepDuration > 24) {
+      nextErrors.sleepDuration = "Enter a value between 0 and 24";
     }
 
     if (isBlank(values.sleepQuality)) {
@@ -153,7 +153,7 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
               onChange={handleChange("sleepDuration")}
               error={!!errors.sleepDuration}
               helperText={errors.sleepDuration}
-              inputProps={{ step: "0.1", min: 0.1, max: 17.9 }}
+              inputProps={{ step: "0.1", min: 0.1, max: 24.0 }}
             />
 
             <TextField
