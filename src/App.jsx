@@ -23,7 +23,8 @@ export default function App() {
   const [mode, setMode] = useState("slides");
   const [slideIndex, setSlideIndex] = useState(0);
 
-  const { data, loading, error } = useDataset(); 
+  const { data, loading, error } = useDataset();
+  const slideData = slides(data);
 
   return (
     <ThemeProvider theme={theme}>
@@ -62,16 +63,18 @@ export default function App() {
           <Box sx={{ flex: "1 1 auto", minHeight: 0 }}>
             {mode === "slides" ? (
               <SlideDeck
-                slides={slides}
+                slides={slideData}
                 onFinish={() => setMode("dashboard")}
                 onSlideChange={setSlideIndex}
               />
             ) : error ? (
               <div style={{ padding: 16 }}>Failed to load dataset.</div>
+            ) : loading ? (
+              <div style={{ padding: 16 }}>Loading...</div>
             ) : (
               <SleepProfile
                 data={data}
-                guidedContent={slides[slideIndex]}
+                guidedContent={slideData[slideIndex]}
                 loading={loading}
               />
             )}

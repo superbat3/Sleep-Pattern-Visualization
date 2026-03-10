@@ -3,6 +3,7 @@ import "./SleepProfile.css";
 
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -17,7 +18,7 @@ const ALLOWED_OCCUPATIONS = [
   "Lawyer",
   "Teacher",
   "Salesperson",
-  "Doctor"
+  "Doctor",
 ];
 
 function Tile({ icon, label, value, sub, tone = "normal" }) {
@@ -35,10 +36,21 @@ function Tile({ icon, label, value, sub, tone = "normal" }) {
   );
 }
 
-function Panel({ title, children }) {
+function Panel({ title, children, headerAction = null }) {
   return (
     <Box className="sp-panel">
-      <Typography className="sp-panel-title">{title}</Typography>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1,
+          mb: 1,
+        }}
+      >
+        <Typography className="sp-panel-title">{title}</Typography>
+        {headerAction}
+      </Box>
       {children}
     </Box>
   );
@@ -50,6 +62,26 @@ function RowLabel({ title }) {
       <Typography sx={{ fontWeight: 900, fontSize: 12, opacity: 0.75, letterSpacing: 0.4 }}>
         {title}
       </Typography>
+    </Box>
+  );
+}
+
+function PlaceholderView({ label }) {
+  return (
+    <Box
+      sx={{
+        height: 220,
+        border: "1px dashed rgba(255,255,255,0.25)",
+        borderRadius: 2,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "rgba(255,255,255,0.75)",
+        fontSize: 15,
+        fontWeight: 600,
+      }}
+    >
+      {label}
     </Box>
   );
 }
@@ -75,11 +107,12 @@ export default function SleepProfile({ data }) {
   const [occupation, setOccupation] = useState("Software Engineer");
   const [gender, setGender] = useState("All");
   const [age, setAge] = useState("All");
+  const [distributionViewIndex, setDistributionViewIndex] = useState(0);
 
   const safeData = data ?? EMPTY_DATA;
   const scopedData = useMemo(
     () => safeData.filter((d) => ALLOWED_OCCUPATIONS.includes(d.occupation)),
-    [safeData],
+    [safeData]
   );
 
   const occupations = ALLOWED_OCCUPATIONS;
@@ -98,7 +131,7 @@ export default function SleepProfile({ data }) {
 
   const filtered = useMemo(
     () => demographicFiltered.filter((d) => d.occupation === selectedOccupation),
-    [demographicFiltered, selectedOccupation],
+    [demographicFiltered, selectedOccupation]
   );
 
   const avg = (arr) =>
@@ -149,6 +182,36 @@ export default function SleepProfile({ data }) {
         100
       ).toFixed(0)
     : "—";
+
+  const distributionViews = [
+    {
+      title: "Sleep Duration Distribution",
+      content: (
+        <Box sx={{ height: 220 }}>
+          <DistributionHist data={filtered} valueKey="sleepDuration" title="" bins={12} />
+        </Box>
+      ),
+    },
+    {
+      title: "Sleep Scatterplot",
+      content: <PlaceholderView label="Scatterplot placeholder" />,
+    },
+    {
+      title: "Third View",
+      content: <PlaceholderView label="Third placeholder view" />,
+    },
+  ];
+
+  const currentDistributionView = distributionViews[distributionViewIndex];
+
+  const cycleDistributionView = (direction) => {
+    setDistributionViewIndex((prev) => {
+      const next = prev + direction;
+      if (next < 0) return distributionViews.length - 1;
+      if (next >= distributionViews.length) return 0;
+      return next;
+    });
+  };
 
   if (!data) return <div>Loading...</div>;
 
@@ -212,137 +275,153 @@ export default function SleepProfile({ data }) {
 
         <Box className="sp-body">
           <Grid container spacing={1.5} sx={{ alignContent: "flex-start" }}>
-          <Grid size={12}>
-            <RowLabel title="Sleep indicators" />
-          </Grid>
+            <Grid size={12}>
+              <RowLabel title="Sleep indicators" />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 3 }}>
-            <Tile icon="🌙" label="Avg Sleep Duration" value={avgSleep} sub=" h" />
-          </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Tile icon="🌙" label="Avg Sleep Duration" value={avgSleep} sub=" h" />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 3 }}>
-            <Tile icon="🙂" label="Avg Sleep Quality" value={avgQuality} sub="/10" />
-          </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Tile icon="🙂" label="Avg Sleep Quality" value={avgQuality} sub="/10" />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 3 }}>
-            <Tile
-              icon="🔥"
-              label="Avg Stress Level"
-              value={avgStress}
-              sub="/10"
-              tone={avgStress !== "—" && +avgStress >= 7 ? "warn" : "normal"}
-            />
-          </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Tile
+                icon="🔥"
+                label="Avg Stress Level"
+                value={avgStress}
+                sub="/10"
+                tone={avgStress !== "—" && +avgStress >= 7 ? "warn" : "normal"}
+              />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 3 }}>
-            <Tile
-              icon="⚠️"
-              label="Sleep Disorder Prevalence"
-              value={disorderPct}
-              sub="%"
-              tone={disorderPct !== "—" && +disorderPct >= 20 ? "warn" : "normal"}
-            />
-          </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Tile
+                icon="⚠️"
+                label="Sleep Disorder Prevalence"
+                value={disorderPct}
+                sub="%"
+                tone={disorderPct !== "—" && +disorderPct >= 20 ? "warn" : "normal"}
+              />
+            </Grid>
 
-          <Grid size={12}>
-            <RowLabel title="Health indicators" />
-          </Grid>
+            <Grid size={12}>
+              <RowLabel title="Health indicators" />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 2 }}>
-            <Tile icon="🏃" label="Avg Activity Level" value={avgActivity} />
-          </Grid>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <Tile icon="🏃" label="Avg Activity Level" value={avgActivity} />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 2 }}>
-            <Tile icon="🧍" label="Avg BMI" value={avgBMI} />
-          </Grid>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <Tile icon="🧍" label="Avg BMI" value={avgBMI} />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 2 }}>
-            <Tile icon="🩺" label="Avg Blood Pressure" value={bpAvg} />
-          </Grid>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <Tile icon="🩺" label="Avg Blood Pressure" value={bpAvg} />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 2 }}>
-            <Tile icon="❤️" label="Avg Heart Rate" value={avgHeartRate} sub=" bpm" />
-          </Grid>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <Tile icon="❤️" label="Avg Heart Rate" value={avgHeartRate} sub=" bpm" />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 2 }}>
-            <Tile icon="👣" label="Avg Daily Steps" value={avgSteps} />
-          </Grid>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <Tile icon="👣" label="Avg Daily Steps" value={avgSteps} />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 2 }}>
-            <Tile
-              icon="📈"
-              label="Elevated BP Prevalence"
-              value={highBPPct}
-              sub="%"
-              tone={highBPPct !== "—" && +highBPPct >= 20 ? "warn" : "normal"}
-            />
-          </Grid>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <Tile
+                icon="📈"
+                label="Elevated BP Prevalence"
+                value={highBPPct}
+                sub="%"
+                tone={highBPPct !== "—" && +highBPPct >= 20 ? "warn" : "normal"}
+              />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 8 }} sx={{ minHeight: 0 }}>
-            <Grid container spacing={1.5}>
-              <Grid size={12} sx={{ minHeight: 0 }}>
-                <Panel title="Sankey: Occupation -> Stress -> Sleep">
-                  <SankeyFlow
-                    data={demographicFiltered}
-                    selectedOccupation={selectedOccupation}
-                    onSelectOccupation={setOccupation}
-                    height={220}
-                  />
-                  <Box className="sp-sankey-note">
-                    Stress buckets: Low 3-4, Medium 5-6, High 7-8. Sleep buckets: Short &lt; 6.5h,
-                    Normal 6.5-8h, Long &gt; 8h.
-                  </Box>
-                </Panel>
-              </Grid>
-
-              <Grid size={12} sx={{ minHeight: 0 }}>
-                <Panel title="Sleep Duration Distribution">
-                  <Box sx={{ height: 220 }}>
-                    <DistributionHist
-                      data={filtered}
-                      valueKey="sleepDuration"
-                      title=""
-                      bins={12}
+            <Grid size={{ xs: 12, md: 8 }} sx={{ minHeight: 0 }}>
+              <Grid container spacing={1.5}>
+                <Grid size={12} sx={{ minHeight: 0 }}>
+                  <Panel title="Sankey: Occupation -> Stress -> Sleep">
+                    <SankeyFlow
+                      data={demographicFiltered}
+                      selectedOccupation={selectedOccupation}
+                      onSelectOccupation={setOccupation}
+                      height={220}
                     />
-                  </Box>
-                </Panel>
+                    <Box className="sp-sankey-note">
+                      Stress buckets: Low 3-4, Medium 5-6, High 7-8. Sleep buckets: Short &lt; 6.5h,
+                      Normal 6.5-8h, Long &gt; 8h.
+                    </Box>
+                  </Panel>
+                </Grid>
+
+                <Grid size={12} sx={{ minHeight: 0 }}>
+                  <Panel
+                    title={currentDistributionView.title}
+                    headerAction={
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                        <IconButton
+                          size="small"
+                          onClick={() => cycleDistributionView(-1)}
+                          sx={{ color: "#33435d" }}
+                        >
+                          ←
+                        </IconButton>
+                        <Typography sx={{ fontSize: 12, opacity: 0.75 }}>
+                          {distributionViewIndex + 1}/{distributionViews.length}
+                        </Typography>
+                        <IconButton
+                          size="small"
+                          onClick={() => cycleDistributionView(1)}
+                          sx={{ color: "#33435d" }}
+                        >
+                          →
+                        </IconButton>
+                      </Box>
+                    }
+                  >
+                    {currentDistributionView.content}
+                  </Panel>
+                </Grid>
               </Grid>
             </Grid>
-          </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }} sx={{ minHeight: 0 }}>
-            <Panel title="Health risks">
-              <Box className="sp-risk-col">
-                <Box className="sp-risk sp-risk-pink">
-                  <span className="sp-risk-ic">🌙</span>
-                  <div>
-                    <div className="sp-risk-title">Short Sleep</div>
-                    <div className="sp-risk-pct">{shortSleepPct}%</div>
-                  </div>
+            <Grid size={{ xs: 12, md: 4 }} sx={{ minHeight: 0 }}>
+              <Panel title="Health risks">
+                <Box className="sp-risk-col">
+                  <Box className="sp-risk sp-risk-pink">
+                    <span className="sp-risk-ic">🌙</span>
+                    <div>
+                      <div className="sp-risk-title">Short Sleep</div>
+                      <div className="sp-risk-pct">{shortSleepPct}%</div>
+                    </div>
+                  </Box>
+
+                  <Box className="sp-risk sp-risk-amber">
+                    <span className="sp-risk-ic">🔥</span>
+                    <div>
+                      <div className="sp-risk-title">High Stress</div>
+                      <div className="sp-risk-pct">{highStressPct}%</div>
+                    </div>
+                  </Box>
+
+                  <Box className="sp-risk sp-risk-lav">
+                    <span className="sp-risk-ic">🩺</span>
+                    <div>
+                      <div className="sp-risk-title">Elevated BP</div>
+                      <div className="sp-risk-pct">{highBPPct}%</div>
+                    </div>
+                  </Box>
                 </Box>
 
-                <Box className="sp-risk sp-risk-amber">
-                  <span className="sp-risk-ic">🔥</span>
-                  <div>
-                    <div className="sp-risk-title">High Stress</div>
-                    <div className="sp-risk-pct">{highStressPct}%</div>
-                  </div>
+                <Box className="sp-footnote">
+                  Mock selection: <b>{selectedOccupation}</b>, Gender <b>{gender}</b>, Age <b>{age}</b>
                 </Box>
-
-                <Box className="sp-risk sp-risk-lav">
-                  <span className="sp-risk-ic">🩺</span>
-                  <div>
-                    <div className="sp-risk-title">Elevated BP</div>
-                    <div className="sp-risk-pct">{highBPPct}%</div>
-                  </div>
-                </Box>
-              </Box>
-
-              <Box className="sp-footnote">
-                Mock selection: <b>{selectedOccupation}</b>, Gender <b>{gender}</b>, Age <b>{age}</b>
-              </Box>
-            </Panel>
-          </Grid>
+              </Panel>
+            </Grid>
           </Grid>
         </Box>
       </Box>
