@@ -1,7 +1,19 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+const defaultTheme = {
+  canvasBackground: "linear-gradient(135deg, #dae3f5 0%, #cfdaf1 100%)",
+  frameBackground: "linear-gradient(180deg, #ffffff 0%, #f7f8fb 100%)",
+  frameBorder: "1px solid rgba(34, 49, 74, 0.14)",
+  accent: "#4A6CF7",
+  accentSoft: "rgba(74, 108, 247, 0.13)",
+  titleColor: "#1A1E2A",
+  subtitleColor: "#42506E",
+  navBackground: "#f4f6fb",
+  buttonAccentEnd: "#6A8BFF",
+};
 
 export default function SlideDeck({ slides, onFinish, onSlideChange }) {
   const [index, setIndex] = useState(0);
@@ -11,6 +23,18 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
   const isFirst = index === 0;
   const isLast = hasSlides ? index === slides.length - 1 : true;
   const slide = hasSlides ? slides[index] : null;
+  const theme = slide?.theme ?? defaultTheme;
+  const accent = theme.accent ?? defaultTheme.accent;
+  const accentSoft = theme.accentSoft ?? defaultTheme.accentSoft;
+  const buttonAccentEnd = theme.buttonAccentEnd ?? defaultTheme.buttonAccentEnd;
+  const canvasBackground = slide?.backgroundImage
+    ? `linear-gradient(135deg, rgba(10, 18, 33, 0.54), rgba(20, 38, 66, 0.42)), url('${slide.backgroundImage}'), ${theme.canvasBackground}`
+    : theme.canvasBackground;
+  const goPrev = useCallback(() => setIndex((v) => Math.max(0, v - 1)), []);
+  const goNext = useCallback(
+    () => setIndex((v) => Math.min(slides.length - 1, v + 1)),
+    [slides.length],
+  );
 
   // Notify parent when slide changes
   useEffect(() => {
@@ -31,10 +55,7 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
-
-  const goPrev = () => setIndex((v) => Math.max(0, v - 1));
-  const goNext = () => setIndex((v) => Math.min(slides.length - 1, v + 1));
+  }, [goNext, goPrev]);
 
   const onClickHalfNav = (e) => {
     if (!hasSlides) return;
@@ -54,19 +75,35 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
   return (
     <Box
       sx={{
+        position: "relative",
         height: "100%",
         width: "100%",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        background: "#f0f2f7",
+        background: canvasBackground,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        transition: "background 300ms ease",
       }}
       onClick={onClickHalfNav}
     >
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background:
+            "radial-gradient(circle at 14% 16%, rgba(255,255,255,0.24), transparent 28%), radial-gradient(circle at 88% 78%, rgba(255,255,255,0.18), transparent 26%)",
+        }}
+      />
+
       {/* Scrollable slide area */}
       <Box
         ref={scrollRef}
         sx={{
+          position: "relative",
+          zIndex: 1,
           flex: 1,
           minHeight: 0,
           px: { xs: 2, md: 6 },
@@ -84,9 +121,15 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
             my: "auto",
             p: { xs: 3, md: 5 },
             borderRadius: 4,
-            background: "linear-gradient(180deg, #ffffff 0%, #f7f8fb 100%)",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+            border: theme.frameBorder,
+            background:
+              "linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(246, 249, 255, 0.56))",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+            boxShadow: "0 12px 34px rgba(10, 20, 40, 0.16)",
             textAlign: "left",
+            fontFamily:
+              "\"Avenir Next\", \"Segoe UI\", \"Helvetica Neue\", Arial, sans-serif",
             animation: "fadeIn 0.45s ease",
             "@keyframes fadeIn": {
               from: { opacity: 0, transform: "translateY(14px)" },
@@ -94,6 +137,25 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
             },
           }}
         >
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              px: 1.5,
+              py: 0.7,
+              mb: 2,
+              borderRadius: 999,
+              fontSize: 12,
+              fontWeight: 800,
+              letterSpacing: 0.4,
+              color: accent,
+              background: accentSoft,
+              textTransform: "uppercase",
+            }}
+          >
+            Guided Story
+          </Box>
+
           {/* Slide Progress */}
           <Typography
             sx={{
@@ -101,7 +163,7 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
               fontWeight: 600,
               letterSpacing: 1,
               textTransform: "uppercase",
-              color: "text.secondary",
+              color: theme.subtitleColor,
               mb: 2,
             }}
           >
@@ -114,9 +176,10 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
             sx={{
               fontWeight: 900,
               fontSize: { xs: "2.4rem", md: "3.2rem" },
-              lineHeight: 1.1,
+              lineHeight: 1.08,
+              letterSpacing: -0.6,
               mb: 2,
-              color: "#1a1a1a",
+              color: theme.titleColor,
             }}
           >
             {slide.title}
@@ -126,16 +189,47 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
           {slide.subtitle && (
             <Typography
               variant="h6"
-              color="text.secondary"
               sx={{
                 mb: 3,
                 fontSize: { xs: "1.1rem", md: "1.3rem" },
-                lineHeight: 1.4,
+                lineHeight: 1.45,
+                color: theme.subtitleColor,
+                fontWeight: 500,
               }}
             >
               {slide.subtitle}
             </Typography>
           )}
+
+          {slide.highlights?.length ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 1,
+                mb: 2.2,
+              }}
+            >
+              {slide.highlights.map((item) => (
+                <Box
+                  key={item}
+                  sx={{
+                    px: 1.4,
+                    py: 0.8,
+                    borderRadius: 999,
+                    border: `1px solid ${accent}33`,
+                    background: accentSoft,
+                    color: theme.titleColor,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {item}
+                </Box>
+              ))}
+            </Box>
+          ) : null}
 
           {/* Optional Image */}
           {slide.image && (
@@ -156,10 +250,34 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
           <Typography
             component="div"
             sx={{
-              lineHeight: 1.75,
-              fontSize: { xs: 17, md: 19 },
+              lineHeight: 1.7,
+              fontSize: { xs: 17, md: 18 },
               color: "text.primary",
               mt: 2,
+              "& p": {
+                mt: 0,
+                mb: 1.9,
+                fontSize: { xs: 17, md: 18 },
+                lineHeight: 1.7,
+                color: "rgba(20, 29, 45, 0.95)",
+                textWrap: "pretty",
+              },
+              "& ul": {
+                pl: 2.6,
+                mt: 0.4,
+                mb: 2,
+                display: "grid",
+                gap: 0.9,
+              },
+              "& li": {
+                mb: 0,
+                fontSize: { xs: 17, md: 18 },
+                lineHeight: 1.65,
+                color: "rgba(20, 29, 45, 0.95)",
+                textWrap: "pretty",
+              },
+              "& li::marker": { color: accent, fontSize: "1.05em" },
+              "& b": { color: theme.titleColor, fontWeight: 800 },
             }}
           >
             {slide.body}
@@ -170,6 +288,8 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
       {/* Navigation Bar */}
       <Box
         sx={{
+          position: "relative",
+          zIndex: 1,
           px: { xs: 3, md: 6 },
           py: 2.5,
           borderTop: "1px solid",
@@ -177,7 +297,7 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          background: "#fafafa",
+          background: theme.navBackground,
         }}
         onClick={stop}
       >
@@ -190,6 +310,8 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
             px: 3,
             py: 1,
             fontWeight: 700,
+            borderColor: `${accent}77`,
+            color: accent,
           }}
         >
           ← Back
@@ -204,7 +326,7 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
               px: 3,
               py: 1,
               fontWeight: 700,
-              background: "linear-gradient(90deg, #4a6cf7, #6a8bff)",
+              background: `linear-gradient(90deg, ${accent}, ${buttonAccentEnd})`,
             }}
           >
             Next →
@@ -218,7 +340,7 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
               px: 3,
               py: 1,
               fontWeight: 700,
-              background: "linear-gradient(90deg, #4a6cf7, #6a8bff)",
+              background: `linear-gradient(90deg, ${accent}, ${buttonAccentEnd})`,
             }}
           >
             Start Exploring →
