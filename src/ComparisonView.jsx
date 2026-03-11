@@ -6,6 +6,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, Legend, } from "recharts";
 
 const ALLOWED_OCCUPATIONS = [
   "Engineer",
@@ -123,6 +124,49 @@ export default function ComparisonView({
     return userScore <= occScore ? "user" : "occupation";
   };
 
+function ComparisonRadar({ userInput, stats }) {
+  const normalize = (value, max) =>
+    Number((Number(value) / max).toFixed(2));
+
+  const data = [
+    { metric: "Sleep", you: normalize(userInput.sleepDuration, 10), occ: normalize(stats.avgSleep, 10) },
+    { metric: "Quality", you: normalize(userInput.sleepQuality, 10), occ: normalize(stats.avgQuality, 10) },
+    { metric: "Stress", you: normalize(userInput.stress, 10), occ: normalize(stats.avgStress, 10) },
+    { metric: "Activity", you: normalize(userInput.activity, 100), occ: normalize(stats.avgActivity, 100) },
+    { metric: "BMI", you: normalize(userInput.bmi, 40), occ: normalize(stats.avgBMI, 40) },
+    { metric: "Heart Rate", you: normalize(userInput.heartRate, 120), occ: normalize(stats.avgHeartRate, 120) },
+    { metric: "Steps", you: normalize(userInput.steps, 15000), occ: normalize(stats.avgSteps, 15000) },
+  ];
+
+  return (
+    <Box sx={{ width: "100%", height: 380, mb: 4 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <RadarChart data={data}>
+          <PolarGrid />
+          <PolarAngleAxis dataKey="metric" />
+          <PolarRadiusAxis angle={30} domain={[0, 1]} />
+          <Tooltip />
+          <Legend />
+          <Radar
+            name="You"
+            dataKey="you"
+            stroke="#4A6CF7"
+            fill="#4A6CF7"
+            fillOpacity={0.45}
+          />
+          <Radar
+            name="Occupation Avg"
+            dataKey="occ"
+            stroke="#999"
+            fill="#999"
+            fillOpacity={0.35}
+          />
+        </RadarChart>
+      </ResponsiveContainer>
+    </Box>
+  );
+}
+
   return (
     <Box sx={{ p: 3, height: "100%", overflow: "auto" }}>
       <Box
@@ -202,6 +246,19 @@ export default function ComparisonView({
             {occupation}
           </Typography>
         </Box>
+
+      <ComparisonRadar
+        userInput={userInput}
+        stats={{
+          avgSleep,
+          avgQuality,
+          avgStress,
+          avgActivity,
+          avgHeartRate,
+          avgSteps,
+          avgBMI,
+        }}
+      />
 
         <Stack spacing={1.2}>
           <StatRow

@@ -97,7 +97,6 @@ function matchesAgeBucket(ageValue, ageBucket) {
     "18-24": [18, 24],
     "25-40": [25, 40],
     "41-60": [41, 60],
-    "60+": [60, 200],
   };
 
   const [min, max] = ageRanges[normalized] ?? [];
@@ -201,10 +200,6 @@ export default function SleepProfile({ data, onEnterCompare }) {
         </Box>
       ),
     },
-    {
-      title: "Third View",
-      content: <PlaceholderView label="Third placeholder view" />,
-    },
   ];
 
   const currentDistributionView = distributionViews[distributionViewIndex];
@@ -267,7 +262,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
               onChange={(e) => setAge(e.target.value)}
               className="sp-select"
             >
-              {["All", "18–24", "25–40", "41–60", "60+"].map((x) => (
+              {["All", "18–24", "25–40", "41–60"].map((x) => (
                 <MenuItem key={x} value={x}>
                   {x}
                 </MenuItem>

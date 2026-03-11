@@ -71,7 +71,7 @@ export const slides = (data) => [
             src="/sleep_intro.png"
             alt="Person sleeping"
             style={{
-              width: 240,
+              width: 180,
               borderRadius: 8,
             }}
           />
@@ -111,7 +111,7 @@ export const slides = (data) => [
           tend to sleep less.
         </p>
 
-        <div style={{ width: "100%", minHeight: 320 }}>
+        <div style={{ width: "100%", height:"auto"}}>
           <BarChart data={data} />
         </div>
 

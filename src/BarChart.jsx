@@ -37,7 +37,7 @@ export default function BarChart({ data }) {
     if (!Array.isArray(data)) return [];
 
     const allowed = new Set([
-      "Software Engineer",
+      "Engineer",
       "Doctor",
       "Lawyer",
       "Teacher",
@@ -56,7 +56,7 @@ export default function BarChart({ data }) {
     }).sort((a, b) => d3.descending(a.avgSleep, b.avgSleep));
   }, [data]);
 
-  const height = 300;
+  const height = 200;
   const pad = { top: 36, right: 16, bottom: 56, left: 64 };
 
   const innerW = Math.max(0, (width || 0) - pad.left - pad.right);
@@ -121,7 +121,7 @@ export default function BarChart({ data }) {
         height={height}
         viewBox={`0 0 ${Math.max(1, width || 1)} ${height}`}
       >
-        <text x={pad.left} y={20} fontSize="14" fontWeight="700" opacity="0.9">
+        <text x={pad.left} y={10} fontSize="14" fontWeight="700" opacity="0.9">
           Average Sleep Duration by Occupation
         </text>
 
@@ -187,7 +187,7 @@ export default function BarChart({ data }) {
 
               <text
                 x={xPos}
-                y={pad.top + innerH + 28}
+                y={pad.top + innerH + 18}
                 fontSize="12"
                 textAnchor="middle"
                 opacity="0.75"

@@ -147,7 +147,7 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
             }}
           >
             <TextField
-              label="Hours of Sleep *"
+              label="Hours of Sleep (24)"
               type="number"
               value={values.sleepDuration}
               onChange={handleChange("sleepDuration")}
@@ -177,7 +177,7 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
             />
 
             <TextField
-              label="Physical Activity Level"
+              label="Physical Activity Level (100)"
               type="number"
               value={values.activity}
               onChange={handleChange("activity")}
@@ -192,7 +192,7 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
               value={values.bmi}
               onChange={handleChange("bmi")}
               error={!!errors.bmi}
-              helperText={errors.bmi}
+              helperText={errors.bmi || "Healthy Weight: 18.5 – 24.9"}
               inputProps={{ step: "0.1", min: 10, max: 60 }}
             />
 
@@ -206,7 +206,7 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
             />
 
             <TextField
-              label="Heart Rate"
+              label="Heart Rate (min:30, max:220)"
               type="number"
               value={values.heartRate}
               onChange={handleChange("heartRate")}
@@ -223,6 +223,7 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
               error={!!errors.steps}
               helperText={errors.steps}
               inputProps={{ step: "1", min: 0, max: 50000 }}
+              placeholder = "2,000 steps≈1 mile"
             />
 
             <TextField

@@ -107,7 +107,7 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
           flex: 1,
           minHeight: 0,
           px: { xs: 2, md: 6 },
-          py: { xs: 2, md: 4 },
+          py: 0,
           overflow: "auto",
           display: "flex",
           justifyContent: "center",
@@ -117,9 +117,9 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
         <Box
           sx={{
             width: "100%",
-            maxWidth: 900,
+            maxWidth: 1200,
             my: "auto",
-            p: { xs: 3, md: 5 },
+            p: { xs: 2, md: 3 },
             borderRadius: 4,
             border: theme.frameBorder,
             background:
@@ -291,7 +291,7 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
           position: "relative",
           zIndex: 1,
           px: { xs: 3, md: 6 },
-          py: 2.5,
+          py: 1.2,
           borderTop: "1px solid",
           borderColor: "divider",
           display: "flex",
