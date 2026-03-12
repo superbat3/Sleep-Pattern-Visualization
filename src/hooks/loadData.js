@@ -1,22 +1,30 @@
 import * as d3 from "d3";
 import { useEffect, useMemo, useState } from "react";
 
-const CSV_PATH = "/data/Sleep_health_and_lifestyle_dataset.csv";
-
-function parseBloodPressure(bp) {
-  const raw = (bp ?? "").toString().trim();
-  if (!raw) return { bpSys: null, bpDia: null };
-
-  const parts = raw.split("/").map((s) => Number(s.trim()));
-  const sys = Number.isFinite(parts[0]) ? parts[0] : null;
-  const dia = Number.isFinite(parts[1]) ? parts[1] : null;
-
-  return { bpSys: sys, bpDia: dia };
-}
+const CSV_PATH = "/data/nhanes_sleep_dataset.csv";
 
 function num(v) {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
+}
+
+/** Convert systolic/diastolic into numeric fields */
+function parseBP(sys, dia) {
+  const s = num(sys);
+  const d = num(dia);
+  return {
+    bpSys: Number.isFinite(s) ? s : null,
+    bpDia: Number.isFinite(d) ? d : null,
+  };
+}
+
+/** Convert BMI → category */
+function bmiCategory(bmi) {
+  if (!Number.isFinite(bmi)) return "Unknown";
+  if (bmi < 18.5) return "Underweight";
+  if (bmi < 25) return "Normal";
+  if (bmi < 30) return "Overweight";
+  return "Obese";
 }
 
 export function useDataset() {
@@ -42,27 +50,32 @@ export function useDataset() {
           return;
         }
 
-        console.log("loaded rows:", raw.length);
+        console.log("Loaded NHANES rows:", raw.length);
         console.log("CSV keys:", Object.keys(raw[0]));
 
         const cleaned = raw.map((d) => {
-          const { bpSys, bpDia } = parseBloodPressure(d["Blood Pressure"]);
+        const sleepDuration = num(d.sleepDuration);
+        const activity = num(d.activityLevel);
+          const stress = num(d.stress);
+          const bmi = num(d.bmi);
+          const heartRate = num(d.heartRate);
+
+          const { bpSys, bpDia } = parseBP(d.bpSys, d.bpDia);
 
           return {
-            id: num(d["Person ID"]),
-            gender: d["Gender"] ?? "",
-            age: num(d["Age"]),
-            occupation: d["Occupation"] ?? "",
-            sleepDuration: num(d["Sleep Duration"]),
-            sleepQuality: num(d["Quality of Sleep"]),
-            activity: num(d["Physical Activity Level"]),
-            stress: num(d["Stress Level"]),
-            bmiCategory: d["BMI Category"] ?? "",
+            id: num(d.SEQN),
+            occupation: d.occupation ?? "",
+            sleepDuration,
+            sleepQuality: null, 
+            activityLevel: activity,
+            stress,
+            stressBucket: d.stressBucket,
+            bmi,
+            bmiCategory: bmiCategory(bmi),
             bpSys,
             bpDia,
-            heartRate: num(d["Heart Rate"]),
-            steps: num(d["Daily Steps"]),
-            disorder: d["Sleep Disorder"] ?? "",
+            heartRate,
+            disorder: d.disorder ?? "None",
           };
         });
 

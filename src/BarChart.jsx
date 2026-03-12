@@ -36,19 +36,20 @@ export default function BarChart({ data }) {
   const grouped = useMemo(() => {
     if (!Array.isArray(data)) return [];
 
-    const allowed = new Set([
-      "Engineer",
-      "Doctor",
-      "Lawyer",
-      "Teacher",
-      "Accountant",
-      "Salesperson",
-    ]);
+    
 
-    const groups = d3.group(
-      data.filter((d) => allowed.has(d.occupation)),
-      (d) => d.occupation
-    );
+  const focus = new Set([
+    "Construction_Extraction",
+    "Transportation_Material_Moving",
+    "Sales",
+    "Food_Preparation_Serving",
+    "Management"
+  ]);
+
+  const groups = d3.group(
+    data.filter(d => focus.has(d.occupation)),
+    d => d.occupation
+  );
 
     return Array.from(groups, ([occ, rows]) => {
       const avg = d3.mean(rows, (d) => d.sleepDuration);
@@ -70,7 +71,7 @@ export default function BarChart({ data }) {
 
   const y = d3
     .scaleLinear()
-    .domain([0, d3.max(grouped, (d) => d.avgSleep) || 1])
+    .domain([5.5, 7.5])
     .nice()
     .range([innerH, 0]);
 
@@ -186,13 +187,12 @@ export default function BarChart({ data }) {
               </text>
 
               <text
-                x={xPos}
-                y={pad.top + innerH + 18}
-                fontSize="12"
-                textAnchor="middle"
+                transform={`translate(${15 + xPos}, ${pad.top + innerH + 18}) rotate(0)`}
+                fontSize="11"
+                textAnchor="end"
                 opacity="0.75"
               >
-                {d.occupation}
+                {d.occupation.replaceAll("_", " ")}
               </text>
             </g>
           );

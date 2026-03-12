@@ -15,14 +15,28 @@ import ScatterPlot from "./ScatterPlot";
 
 const EMPTY_DATA = [];
 const ALLOWED_OCCUPATIONS = [
-  "Engineer",
-  "Accountant",
-  "Lawyer",
-  "Teacher",
-  "Salesperson",
-  "Doctor",
-  "Nurse",
+  "Management",
+  "Healthcare",
+  "Production",
+  "Food_Preparation_Serving",
+  "Sales",
+  "Office_Administrative_Support",
+  "Construction_Extraction",
+  "Transportation_Material_Moving"
 ];
+const OCC_LABELS = {
+  Management: "Management",
+  Healthcare: "Healthcare",
+  Production: "Production",
+  Food_Preparation_Serving: "Food Service",
+  Sales: "Sales",
+  Office_Administrative_Support: "Office / Admin Support",
+  Construction_Extraction: "Construction & Extraction",
+  Transportation_Material_Moving: "Transportation / Material Moving"
+};
+
+
+
 
 const asset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
 
@@ -80,50 +94,36 @@ function RowLabel({ title }) {
   );
 }
 
-function matchesAgeBucket(ageValue, ageBucket) {
-  if (ageBucket === "All") return true;
 
-  const normalized = String(ageBucket).replace(/[–—]/g, "-");
-  const ageRanges = {
-    "25-34": [25, 34],
-    "35-44": [35, 44],
-    "45-59": [45, 59],
-  };
-
-  const [min, max] = ageRanges[normalized] ?? [];
-  if (!Number.isFinite(min) || !Number.isFinite(max)) return true;
-
-  return Number.isFinite(ageValue) && ageValue >= min && ageValue <= max;
-}
 
 export default function SleepProfile({ data, onEnterCompare }) {
-  const [occupation, setOccupation] = useState("Doctor");
-  const [gender, setGender] = useState("All");
-  const [age, setAge] = useState("All");
+  const [occupation, setOccupation] = useState("Management");
   const [distributionViewIndex, setDistributionViewIndex] = useState(0);
 
   const safeData = data ?? EMPTY_DATA;
-  const scopedData = useMemo(
-    () => safeData.filter((d) => ALLOWED_OCCUPATIONS.includes(d.occupation)),
-    [safeData],
-  );
+  const scopedData = useMemo(() => {
+    return safeData
+      .map(d => {
+        let occ = d.occupation;
+
+        if (occ === "Healthcare_Practitioners" || occ === "Healthcare_Support") {
+          occ = "Healthcare";
+        }
+
+        return { ...d, occupation: occ };
+      })
+      .filter(d => ALLOWED_OCCUPATIONS.includes(d.occupation));
+  }, [safeData]);
 
   const occupations = ALLOWED_OCCUPATIONS;
-  const genders = useMemo(
-    () => ["All", ...new Set(safeData.map((d) => d.gender))],
-    [safeData],
-  );
-  const selectedOccupation = occupations.includes(occupation)
+
+  const selectedOccupation = ALLOWED_OCCUPATIONS.includes(occupation)
     ? occupation
     : ALLOWED_OCCUPATIONS[0];
 
-  const demographicFiltered = useMemo(() => {
-    if (!scopedData.length) return [];
-    return scopedData
-      .filter((d) => gender === "All" || d.gender === gender)
-      .filter((d) => matchesAgeBucket(d.age, age));
-  }, [scopedData, gender, age]);
 
+  const demographicFiltered = scopedData
+     
   const filtered = useMemo(
     () => demographicFiltered.filter((d) => d.occupation === selectedOccupation),
     [demographicFiltered, selectedOccupation],
@@ -138,15 +138,34 @@ export default function SleepProfile({ data, onEnterCompare }) {
   const avgQuality = avg(
     filtered.map((d) => d.sleepQuality).filter(Number.isFinite),
   );
-  const avgStress = avg(filtered.map((d) => d.stress).filter(Number.isFinite));
+  
+  const stressVals = filtered
+  .map((d) => d.stress)
+  .filter(Number.isFinite);
+
+  let avgStress = "—";
+
+  if (stressVals.length > 0) {
+    const minStress = Math.min(...stressVals);
+    const maxStress = Math.max(...stressVals);
+
+    if (maxStress !== minStress) {
+      avgStress = (
+        stressVals
+          .map((v) => ((v - minStress) / (maxStress - minStress)) * 10)
+          .reduce((a, b) => a + b, 0) / stressVals.length
+      ).toFixed(1);
+    } else {
+      avgStress = stressVals[0].toFixed(1);
+    }
+  }
 
   const avgActivity = avg(
-    filtered.map((d) => d.activity).filter(Number.isFinite),
+    filtered.map((d) => d.activityLevel).filter(Number.isFinite), 
   );
   const avgHeartRate = avg(
     filtered.map((d) => d.heartRate).filter(Number.isFinite),
   );
-  const avgSteps = avg(filtered.map((d) => d.steps).filter(Number.isFinite));
 
   const bmiMap = {
     Underweight: 18,
@@ -170,12 +189,9 @@ export default function SleepProfile({ data, onEnterCompare }) {
     return `${s}/${di}`;
   })();
 
-  const disorderPct = filtered.length
-    ? (
-        (filtered.filter((d) => d.disorder !== "None").length / filtered.length) *
-        100
-      ).toFixed(0)
-    : "—";
+  const disorderPct = Math.round(
+  (filtered.filter(d => d.disorder !== "None").length / filtered.length) * 100
+  );
 
   const shortSleepPct = filtered.length
     ? (
@@ -186,18 +202,19 @@ export default function SleepProfile({ data, onEnterCompare }) {
 
   const highStressPct = filtered.length
     ? (
-        (filtered.filter((d) => d.stress >= 7).length / filtered.length) *
+        (filtered.filter((d) => d.stress >= 5).length / filtered.length) *
         100
       ).toFixed(0)
     : "—";
 
   const highBPPct = filtered.length
-    ? (
-        (filtered.filter((d) => d.bpSys >= 130 && d.bpDia >= 80).length /
-          filtered.length) *
-        100
-      ).toFixed(0)
-    : "—";
+  ? (
+      (filtered.filter((d) => d.bpSys >= 130 || d.bpDia >= 80).length /
+        filtered.length) *
+      100
+    ).toFixed(0)
+  : "—";
+
 
   const distributionViews = [
     {
@@ -270,43 +287,9 @@ export default function SleepProfile({ data, onEnterCompare }) {
                 onChange={(e) => setOccupation(e.target.value)}
                 className="sp-select"
               >
-                {occupations.map((x) => (
-                  <MenuItem key={x} value={x}>
-                    {x}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <Typography className="sp-divider">|</Typography>
-
-              <Typography className="sp-h-label">Gender:</Typography>
-              <TextField
-                select
-                size="small"
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                className="sp-select"
-              >
-                {genders.map((x) => (
-                  <MenuItem key={x} value={x}>
-                    {x}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <Typography className="sp-divider">|</Typography>
-
-              <Typography className="sp-h-label">Age:</Typography>
-              <TextField
-                select
-                size="small"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                className="sp-select"
-              >
-                {["All", "25–34", "35–44", "45–59"].map((x) => (
-                  <MenuItem key={x} value={x}>
-                    {x}
+                {ALLOWED_OCCUPATIONS.map((occ) => (
+                  <MenuItem key={occ} value={occ}>
+                    {OCC_LABELS[occ]}
                   </MenuItem>
                 ))}
               </TextField>
@@ -343,9 +326,6 @@ export default function SleepProfile({ data, onEnterCompare }) {
                 <Tile label="Avg Sleep Duration" value={avgSleep} sub=" h" />
               </Grid>
 
-              <Grid size={{ xs: 12, md: 3 }}>
-                <Tile label="Avg Sleep Quality" value={avgQuality} sub="/10" />
-              </Grid>
 
               <Grid size={{ xs: 12, md: 3 }}>
                 <Tile
@@ -356,41 +336,26 @@ export default function SleepProfile({ data, onEnterCompare }) {
                 />
               </Grid>
 
-              <Grid size={{ xs: 12, md: 3 }}>
-                <Tile
-                  label="Sleep Disorder Prevalence"
-                  value={disorderPct}
-                  sub="%"
-                  tone={
-                    disorderPct !== "—" && +disorderPct >= 20 ? "warn" : "normal"
-                  }
-                />
-              </Grid>
 
               <Grid size={12}>
                 <RowLabel title="Health indicators" />
               </Grid>
 
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Tile label="Avg Activity Level" value={avgActivity} />
-              </Grid>
+             <Grid size={{ xs: 12, md: 3 }}>
+              <Tile label="Avg Activity Level" value={avgActivity} />
+            </Grid>
 
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Tile label="Avg BMI" value={avgBMI} />
-              </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Tile label="Avg BMI" value={avgBMI} />
+            </Grid>
 
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Tile label="Avg Blood Pressure" value={bpAvg} />
-              </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Tile label="Sleep Disorder Prevalence" value={`${disorderPct}%`} />
+            </Grid>
 
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Tile label="Avg Heart Rate" value={avgHeartRate} sub=" bpm" />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Tile label="Avg Daily Steps" value={avgSteps} />
-              </Grid>
-
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Tile label="Avg Heart Rate" value={avgHeartRate} sub=" bpm" />
+            </Grid>
               <Grid size={{ xs: 12, md: 8 }} sx={{ minHeight: 0 }}>
                 <Grid container spacing={1.5}>
                   <Grid size={12} sx={{ minHeight: 0 }}>
@@ -402,8 +367,8 @@ export default function SleepProfile({ data, onEnterCompare }) {
                         height={220}
                       />
                       <Box className="sp-sankey-note">
-                        Stress buckets: Low 3-4, Medium 5-6, High 7-8. Sleep
-                        buckets: Short &lt; 6.5h, Normal 6.5-8h, Long &gt; 8h.
+                      Stress buckets represent relative mental-health score tiers
+                      (lowest third, middle third, highest third of the dataset).
                       </Box>
                     </Panel>
                   </Grid>
@@ -445,7 +410,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
                     <Box className="sp-risk sp-risk-pink">
                       <div>
                         <div className="sp-risk-title">
-                          Short Sleep (&lt; 7 hours)
+                          Short Sleep (&lt; avg 6 hours)
                         </div>
                         <div className="sp-risk-pct">{shortSleepPct}%</div>
                       </div>
@@ -453,7 +418,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
 
                     <Box className="sp-risk sp-risk-amber">
                       <div>
-                        <div className="sp-risk-title">High Stress (≥ 7)</div>
+                        <div className="sp-risk-title">High Stress (≥ 5)</div>
                         <div className="sp-risk-pct">{highStressPct}%</div>
                       </div>
                     </Box>
