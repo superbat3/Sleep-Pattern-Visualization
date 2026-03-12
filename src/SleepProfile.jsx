@@ -189,9 +189,9 @@ export default function SleepProfile({ data, onEnterCompare }) {
     return `${s}/${di}`;
   })();
 
-  const disorderPct = (
-  (data.filter(d => d.disorder !== "None").length / data.length) * 100
-  ).toFixed(1);
+  const disorderPct = Math.round(
+  (filtered.filter(d => d.disorder !== "None").length / filtered.length) * 100
+  );
 
   const shortSleepPct = filtered.length
     ? (
@@ -350,7 +350,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
               </Grid>
 
               <Grid size={{ xs: 12, md: 2 }}>
-                <Tile label="Sleep Disorder Prevalence" value={disorderPct} />
+                <Tile label="Sleep Disorder Prevalence" value={`${disorderPct}%`} />
               </Grid>
 
               <Grid size={{ xs: 12, md: 2 }}>
