@@ -341,24 +341,21 @@ export default function SleepProfile({ data, onEnterCompare }) {
                 <RowLabel title="Health indicators" />
               </Grid>
 
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Tile label="Avg Activity Level" value={avgActivity} />
-              </Grid>
+             <Grid size={{ xs: 12, md: 3 }}>
+              <Tile label="Avg Activity Level" value={avgActivity} />
+            </Grid>
 
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Tile label="Avg BMI" value={avgBMI} />
-              </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Tile label="Avg BMI" value={avgBMI} />
+            </Grid>
 
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Tile label="Sleep Disorder Prevalence" value={`${disorderPct}%`} />
-              </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Tile label="Sleep Disorder Prevalence" value={`${disorderPct}%`} />
+            </Grid>
 
-              <Grid size={{ xs: 12, md: 2 }}>
-                <Tile label="Avg Heart Rate" value={avgHeartRate} sub=" bpm" />
-              </Grid>
-
-              {/* Steps removed: NHANES dataset has no steps column */}
-
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Tile label="Avg Heart Rate" value={avgHeartRate} sub=" bpm" />
+            </Grid>
               <Grid size={{ xs: 12, md: 8 }} sx={{ minHeight: 0 }}>
                 <Grid container spacing={1.5}>
                   <Grid size={12} sx={{ minHeight: 0 }}>
