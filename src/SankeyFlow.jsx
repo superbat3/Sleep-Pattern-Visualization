@@ -19,8 +19,8 @@ const SLEEP_COLORS = {
 
 function sleepBucket(hours) {
   if (!Number.isFinite(hours)) return null;
-  if (hours < 6.5) return "Short";
-  if (hours <= 8) return "Normal";
+  if (hours < 6) return "Short";
+  if (hours < 7) return "Normal";
   return "Long";
 }
 

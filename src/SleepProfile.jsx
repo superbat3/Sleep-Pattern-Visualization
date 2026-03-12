@@ -138,7 +138,27 @@ export default function SleepProfile({ data, onEnterCompare }) {
   const avgQuality = avg(
     filtered.map((d) => d.sleepQuality).filter(Number.isFinite),
   );
-  const avgStress = avg(filtered.map((d) => d.stress).filter(Number.isFinite));
+  
+  const stressVals = filtered
+  .map((d) => d.stress)
+  .filter(Number.isFinite);
+
+  let avgStress = "—";
+
+  if (stressVals.length > 0) {
+    const minStress = Math.min(...stressVals);
+    const maxStress = Math.max(...stressVals);
+
+    if (maxStress !== minStress) {
+      avgStress = (
+        stressVals
+          .map((v) => ((v - minStress) / (maxStress - minStress)) * 10)
+          .reduce((a, b) => a + b, 0) / stressVals.length
+      ).toFixed(1);
+    } else {
+      avgStress = stressVals[0].toFixed(1);
+    }
+  }
 
   const avgActivity = avg(
     filtered.map((d) => d.activityLevel).filter(Number.isFinite), 
@@ -391,7 +411,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
                     <Box className="sp-risk sp-risk-pink">
                       <div>
                         <div className="sp-risk-title">
-                          Short Sleep (&lt; 7 hours)
+                          Short Sleep (&lt; avg 6 hours)
                         </div>
                         <div className="sp-risk-pct">{shortSleepPct}%</div>
                       </div>
@@ -399,7 +419,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
 
                     <Box className="sp-risk sp-risk-amber">
                       <div>
-                        <div className="sp-risk-title">High Stress (≥ 7)</div>
+                        <div className="sp-risk-title">High Stress (≥ 5)</div>
                         <div className="sp-risk-pct">{highStressPct}%</div>
                       </div>
                     </Box>

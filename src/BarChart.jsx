@@ -38,10 +38,18 @@ export default function BarChart({ data }) {
 
     
 
-    const groups = d3.group(
-      data,
-      (d) => d.occupation
-    );
+  const focus = new Set([
+    "Construction_Extraction",
+    "Transportation_Material_Moving",
+    "Sales",
+    "Food_Preparation_Serving",
+    "Management"
+  ]);
+
+  const groups = d3.group(
+    data.filter(d => focus.has(d.occupation)),
+    d => d.occupation
+  );
 
     return Array.from(groups, ([occ, rows]) => {
       const avg = d3.mean(rows, (d) => d.sleepDuration);
@@ -63,7 +71,7 @@ export default function BarChart({ data }) {
 
   const y = d3
     .scaleLinear()
-    .domain([4, 8])
+    .domain([5.5, 7.5])
     .nice()
     .range([innerH, 0]);
 
@@ -179,7 +187,7 @@ export default function BarChart({ data }) {
               </text>
 
               <text
-                transform={`translate(${xPos}, ${pad.top + innerH + 18}) rotate(-35)`}
+                transform={`translate(${15 + xPos}, ${pad.top + innerH + 18}) rotate(0)`}
                 fontSize="11"
                 textAnchor="end"
                 opacity="0.75"

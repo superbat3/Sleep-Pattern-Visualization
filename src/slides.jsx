@@ -118,10 +118,9 @@ export const slides = (data) => [
         </div>
 
         <p>
-          At a high level, some patterns appear surprising. For example, one might expect lawyers
-          or doctors to consistently get less sleep because of demanding schedules. Yet the data
-          suggests that sleep patterns are more nuanced, and that sleep quality, stress, and other
-          health indicators help explain the fuller story.
+         While most groups average around six to seven hours of sleep, small differences appear across job types. 
+         Physically demanding roles, customer-facing jobs, and managerial work all show slightly different sleep patterns, 
+         suggesting that work schedules and job demands may influence sleep behavior.
         </p>
       </>
     ),
