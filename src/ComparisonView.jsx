@@ -157,8 +157,8 @@ function ComparisonRadar({ userInput, stats }) {
           <Radar
             name="Occupation Avg"
             dataKey="occ"
-            stroke="#999"
-            fill="#999"
+            stroke="#f11313"
+            fill="#f11313"
             fillOpacity={0.35}
           />
         </RadarChart>
@@ -236,12 +236,12 @@ function ComparisonRadar({ userInput, stats }) {
             Metric
           </Typography>
           <Typography
-            sx={{ textAlign: "center", fontWeight: 800, opacity: 0.75, color: "#33435d" }}
+            sx={{ textAlign: "center", fontWeight: 800, opacity: 0.75, color: "#4A6CF7" }}
           >
             You
           </Typography>
           <Typography
-            sx={{ textAlign: "center", fontWeight: 800, opacity: 0.75, color: "#33435d" }}
+            sx={{ textAlign: "center", fontWeight: 800, opacity: 0.75, color: "#f11313" }}
           >
             {occupation}
           </Typography>

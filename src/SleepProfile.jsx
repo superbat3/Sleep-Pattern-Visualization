@@ -196,7 +196,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
       title: "Sleep Scatterplot",
       content: (
       <Box sx={{ height: 220 }}>
-        <ScatterPlot data={scopedData} />
+        <ScatterPlot data={filtered} />
         </Box>
       ),
     },

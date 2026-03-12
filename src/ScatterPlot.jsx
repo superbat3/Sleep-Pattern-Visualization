@@ -41,57 +41,50 @@ export default function ScatterPlot({ data }) {
   const innerW = Math.max(0, (width || 0) - pad.left - pad.right);
   const innerH = height - pad.top - pad.bottom;
 
+  const jitter = (amt) => (Math.random() - 0.5) * amt;
 
-    const jitter = (amt) => (Math.random() - 0.5) * amt;
-
-    const points = useMemo(() => {
+  // ✔ Only use the data passed in (already filtered by occupation)
+  const points = useMemo(() => {
     if (!Array.isArray(data)) return [];
     return data.map((d) => ({
-        sleep: +d.sleepDuration + jitter(0.25),
-        stress: +d.stress + jitter(0.25),
-        occupation: d.occupation,
+      sleep: +d.sleepDuration + jitter(0.25),
+      stress: +d.stress + jitter(0.25),
     }));
-    }, [data]);
+  }, [data]);
 
-    const color = d3.scaleOrdinal()
-    .domain([...new Set(points.map(d => d.occupation))])
-    .range(d3.schemeTableau10);
+  // ✔ Single color for all points
+  const dotColor = "#4A6CF7";
 
+  const maxStress = (d3.max(points, d => d.stress) ?? 10) + 0.5;
+  const minStress = (d3.min(points, d => d.stress) ?? 0) - 0.5;
 
-const maxStress = (d3.max(points, d => d.stress) ?? 10) + 0.5;
-const minStress = (d3.min(points, d => d.stress) ?? 0) - 0.5;
+  const maxSleep = (d3.max(points, d => d.sleep) ?? 10) + 0.5;
+  const minSleep = (d3.min(points, d => d.sleep) ?? 0) - 0.5;
 
-const maxSleep = (d3.max(points, d => d.sleep) ?? 10) + 0.5;
-const minSleep = (d3.min(points, d => d.sleep) ?? 0) - 0.5;
+  const x = d3.scaleLinear()
+    .domain([minStress, maxStress])
+    .range([0, innerW]);
 
-
-const x = d3.scaleLinear()
-  .domain([minStress, maxStress])
-  .range([0, innerW]);
-
-const y = d3.scaleLinear()
-  .domain([minSleep, maxSleep])
-  .range([innerH, 0]);
-
-
+  const y = d3.scaleLinear()
+    .domain([minSleep, maxSleep])
+    .range([innerH, 0]);
 
   useEffect(() => {
     if (!svgRef.current || !tooltipRef.current) return;
-    if (!width || width === 0) return; 
+    if (!width || width === 0) return;
 
     const svg = d3.select(svgRef.current);
     const tooltip = d3.select(tooltipRef.current);
 
     const dots = svg.selectAll("circle.dot").data(points, (_, i) => i);
 
-    dots
-      .enter()
+    dots.enter()
       .append("circle")
       .attr("class", "dot")
       .attr("cx", () => pad.left + innerW / 2)
       .attr("cy", () => pad.top + innerH / 2)
       .attr("r", 0)
-      .attr("fill", (d) => color(d.occupation))
+      .attr("fill", dotColor)
       .attr("stroke", "white")
       .attr("stroke-width", 1)
       .attr("opacity", 0.85)
@@ -101,10 +94,8 @@ const y = d3.scaleLinear()
           .style("left", event.offsetX + 12 + "px")
           .style("top", event.offsetY + 12 + "px")
           .html(`
-            <div><strong>${d.occupation}</strong></div>
-            Sleep: ${d.sleep.toFixed(1)} hrs
-            Stress: ${d.stress.toFixed(1)}
-
+            <div>Sleep: ${d.sleep.toFixed(1)} hrs</div>
+            <div>Stress: ${d.stress.toFixed(1)}</div>
           `);
       })
       .on("mouseleave", () => tooltip.style("opacity", 0))
@@ -122,9 +113,8 @@ const y = d3.scaleLinear()
           .style("left", event.offsetX + 12 + "px")
           .style("top", event.offsetY + 12 + "px")
           .html(`
-            <div><strong>${d.occupation}</strong></div>
-            <div>Sleep: ${d.sleep} hrs</div>
-            <div>Stress: ${d.stress}</div>
+            <div>Sleep: ${d.sleep.toFixed(1)} hrs</div>
+            <div>Stress: ${d.stress.toFixed(1)}</div>
           `);
       })
       .on("mouseleave", () => tooltip.style("opacity", 0))
@@ -139,7 +129,6 @@ const y = d3.scaleLinear()
   if (!width || width === 0) {
     return <div ref={wrapRef} style={{ width: "100%", height: "100%", position: "relative" }} />;
   }
-
 
   return (
     <div ref={wrapRef} style={{ width: "100%", height: "100%", position: "relative" }}>
@@ -157,38 +146,6 @@ const y = d3.scaleLinear()
           transition: "opacity 0.15s",
         }}
       />
-
-        <div
-            style={{
-                position: "absolute",
-                top: 4,
-                right: 4,
-                background: "rgba(255,255,255,0.9)",
-                padding: "6px 10px",
-                borderRadius: "6px",
-                fontSize: "11px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                maxHeight: "80%",
-                overflowY: "auto",
-            }}
-            >
-            {color.domain().map((occ, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 4 }}>
-                <div
-                    style={{
-                    width: 10,
-                    height: 10,
-                    background: color(occ),
-                    borderRadius: "50%",
-                    marginRight: 6,
-                    border: "1px solid #fff",
-                    }}
-                />
-                <span>{occ}</span>
-                </div>
-            ))}
-</div>
-
 
       <svg
         ref={svgRef}
