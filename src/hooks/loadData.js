@@ -67,7 +67,7 @@ export function useDataset() {
             occupation: d.occupation ?? "",
             sleepDuration,
             sleepQuality: null, 
-            activityLevel: activty,
+            activityLevel: activity,
             stress,
             stressBucket: d.stressBucket,
             bmi,
