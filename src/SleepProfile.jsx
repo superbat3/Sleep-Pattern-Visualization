@@ -22,8 +22,9 @@ const ALLOWED_OCCUPATIONS = [
   "Sales",
   "Office_Administrative_Support",
   "Construction_Extraction",
-  "Transportation_Material_Moving"
+  "Transportation_Material_Moving",
 ];
+
 const OCC_LABELS = {
   Management: "Management",
   Healthcare: "Healthcare",
@@ -32,16 +33,13 @@ const OCC_LABELS = {
   Sales: "Sales",
   Office_Administrative_Support: "Office / Admin Support",
   Construction_Extraction: "Construction & Extraction",
-  Transportation_Material_Moving: "Transportation / Material Moving"
+  Transportation_Material_Moving: "Transportation / Material Moving",
 };
-
-
-
 
 const asset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
 
-const sleepDashboardBackground =
-  `linear-gradient(135deg, rgba(13, 26, 45, 0.84), rgba(38, 68, 110, 0.78)), url('${asset("slide-bg/custom/slide-2.jpg")}')`;
+const sleepDashboardBackground = `linear-gradient(135deg, rgba(13, 26, 45, 0.84), rgba(38, 68, 110, 0.78)), url('${asset("slide-bg/custom/slide-2.jpg")}')`;
+
 function Tile({ label, value, sub, tone = "normal" }) {
   return (
     <Box className={`sp-tile sp-${tone}`}>
@@ -94,36 +92,86 @@ function RowLabel({ title }) {
   );
 }
 
+function ComparisonBadge({ label, value, tone = "neutral" }) {
+  const toneStyles = {
+    positive: {
+      bg: "rgba(76, 175, 80, 0.10)",
+      border: "rgba(76, 175, 80, 0.28)",
+      text: "#2e7d32",
+    },
+    negative: {
+      bg: "rgba(211, 60, 60, 0.10)",
+      border: "rgba(211, 60, 60, 0.24)",
+      text: "#b23b3b",
+    },
+    neutral: {
+      bg: "rgba(66, 80, 110, 0.08)",
+      border: "rgba(66, 80, 110, 0.16)",
+      text: "#42506E",
+    },
+  };
 
+  const style = toneStyles[tone] ?? toneStyles.neutral;
+
+  return (
+    <Box
+      sx={{
+        borderRadius: 999,
+        px: 1.25,
+        py: 0.7,
+        background: style.bg,
+        border: `1px solid ${style.border}`,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 0.75,
+        flexWrap: "wrap",
+      }}
+    >
+      <Typography sx={{ fontSize: 12, fontWeight: 800, color: "#42506E" }}>
+        {label}
+      </Typography>
+      <Typography sx={{ fontSize: 13, fontWeight: 900, color: style.text }}>
+        {value}
+      </Typography>
+    </Box>
+  );
+}
+
+function formatSigned(value, digits = 1, suffix = "") {
+  if (!Number.isFinite(value)) return "—";
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(digits)}${suffix}`;
+}
 
 export default function SleepProfile({ data, onEnterCompare }) {
   const [occupation, setOccupation] = useState("Management");
   const [distributionViewIndex, setDistributionViewIndex] = useState(0);
 
   const safeData = data ?? EMPTY_DATA;
+
   const scopedData = useMemo(() => {
     return safeData
-      .map(d => {
+      .map((d) => {
         let occ = d.occupation;
 
-        if (occ === "Healthcare_Practitioners" || occ === "Healthcare_Support") {
+        if (
+          occ === "Healthcare_Practitioners" ||
+          occ === "Healthcare_Support"
+        ) {
           occ = "Healthcare";
         }
 
         return { ...d, occupation: occ };
       })
-      .filter(d => ALLOWED_OCCUPATIONS.includes(d.occupation));
+      .filter((d) => ALLOWED_OCCUPATIONS.includes(d.occupation));
   }, [safeData]);
-
-  const occupations = ALLOWED_OCCUPATIONS;
 
   const selectedOccupation = ALLOWED_OCCUPATIONS.includes(occupation)
     ? occupation
     : ALLOWED_OCCUPATIONS[0];
 
+  const demographicFiltered = scopedData;
 
-  const demographicFiltered = scopedData
-     
   const filtered = useMemo(
     () => demographicFiltered.filter((d) => d.occupation === selectedOccupation),
     [demographicFiltered, selectedOccupation],
@@ -135,16 +183,10 @@ export default function SleepProfile({ data, onEnterCompare }) {
   const avgSleep = avg(
     filtered.map((d) => d.sleepDuration).filter(Number.isFinite),
   );
-  const avgQuality = avg(
-    filtered.map((d) => d.sleepQuality).filter(Number.isFinite),
-  );
-  
-  const stressVals = filtered
-  .map((d) => d.stress)
-  .filter(Number.isFinite);
+
+  const stressVals = filtered.map((d) => d.stress).filter(Number.isFinite);
 
   let avgStress = "—";
-
   if (stressVals.length > 0) {
     const minStress = Math.min(...stressVals);
     const maxStress = Math.max(...stressVals);
@@ -161,8 +203,9 @@ export default function SleepProfile({ data, onEnterCompare }) {
   }
 
   const avgActivity = avg(
-    filtered.map((d) => d.activityLevel).filter(Number.isFinite), 
+    filtered.map((d) => d.activityLevel).filter(Number.isFinite),
   );
+
   const avgHeartRate = avg(
     filtered.map((d) => d.heartRate).filter(Number.isFinite),
   );
@@ -189,9 +232,13 @@ export default function SleepProfile({ data, onEnterCompare }) {
     return `${s}/${di}`;
   })();
 
-  const disorderPct = Math.round(
-  (filtered.filter(d => d.disorder !== "None").length / filtered.length) * 100
-  );
+  const disorderPct = filtered.length
+    ? Math.round(
+        (filtered.filter((d) => d.disorder && d.disorder !== "None").length /
+          filtered.length) *
+          100,
+      )
+    : 0;
 
   const shortSleepPct = filtered.length
     ? (
@@ -208,17 +255,54 @@ export default function SleepProfile({ data, onEnterCompare }) {
     : "—";
 
   const highBPPct = filtered.length
-  ? (
-      (filtered.filter((d) => d.bpSys >= 130 || d.bpDia >= 80).length /
-        filtered.length) *
-      100
-    ).toFixed(0)
-  : "—";
+    ? (
+        (filtered.filter((d) => d.bpSys >= 130 || d.bpDia >= 80).length /
+          filtered.length) *
+        100
+      ).toFixed(0)
+    : "—";
 
+  // overall comparison values
+  const overallSleep = useMemo(() => {
+    const vals = scopedData.map((d) => d.sleepDuration).filter(Number.isFinite);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  }, [scopedData]);
+
+  const overallStress = useMemo(() => {
+    const vals = scopedData.map((d) => d.stress).filter(Number.isFinite);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  }, [scopedData]);
+
+  const overallDisorderPct = useMemo(() => {
+    if (!scopedData.length) return null;
+    return (
+      (scopedData.filter((d) => d.disorder && d.disorder !== "None").length /
+        scopedData.length) *
+      100
+    );
+  }, [scopedData]);
+
+  const avgSleepNum = Number(avgSleep);
+  const avgStressNum = Number(avgStress);
+
+  const sleepVsOverall =
+    Number.isFinite(avgSleepNum) && Number.isFinite(overallSleep)
+      ? avgSleepNum - overallSleep
+      : null;
+
+  const stressVsOverall =
+    Number.isFinite(avgStressNum) && Number.isFinite(overallStress)
+      ? avgStressNum - overallStress
+      : null;
+
+  const disorderVsOverall =
+    Number.isFinite(disorderPct) && Number.isFinite(overallDisorderPct)
+      ? disorderPct - overallDisorderPct
+      : null;
 
   const distributionViews = [
     {
-      title: `Sleep Duration Distribution (${selectedOccupation})`,
+      title: `Sleep Duration Distribution (${OCC_LABELS[selectedOccupation]})`,
       content: (
         <Box sx={{ height: 220 }}>
           <DistributionHist
@@ -231,7 +315,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
       ),
     },
     {
-      title: `Sleep Scatterplot (${selectedOccupation})`,
+      title: `Sleep Scatterplot (${OCC_LABELS[selectedOccupation]})`,
       content: (
         <Box sx={{ height: 220 }}>
           <ScatterPlot data={filtered} />
@@ -326,7 +410,6 @@ export default function SleepProfile({ data, onEnterCompare }) {
                 <Tile label="Avg Sleep Duration" value={avgSleep} sub=" h" />
               </Grid>
 
-
               <Grid size={{ xs: 12, md: 3 }}>
                 <Tile
                   label="Avg Stress Level"
@@ -336,26 +419,80 @@ export default function SleepProfile({ data, onEnterCompare }) {
                 />
               </Grid>
 
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Panel
+                  title={`${OCC_LABELS[selectedOccupation]} vs. Overall Population`}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 1,
+                    }}
+                  >
+                    <ComparisonBadge
+                      label="Sleep vs Overall Population"
+                      value={formatSigned(sleepVsOverall, 1, " h")}
+                      tone={
+                        !Number.isFinite(sleepVsOverall)
+                          ? "neutral"
+                          : sleepVsOverall >= 0
+                            ? "positive"
+                            : "negative"
+                      }
+                    />
+
+                    <ComparisonBadge
+                      label="Stress vs Overall Population"
+                      value={formatSigned(stressVsOverall, 1)}
+                      tone={
+                        !Number.isFinite(stressVsOverall)
+                          ? "neutral"
+                          : stressVsOverall <= 0
+                            ? "positive"
+                            : "negative"
+                      }
+                    />
+
+                    <ComparisonBadge
+                      label="Sleep Disorder Prevalence"
+                      value={
+                        Number.isFinite(disorderVsOverall)
+                          ? `${formatSigned(disorderVsOverall, 0, " %")}`
+                          : "—"
+                      }
+                      tone={
+                        !Number.isFinite(disorderVsOverall)
+                          ? "neutral"
+                          : disorderVsOverall <= 0
+                            ? "positive"
+                            : "negative"
+                      }
+                    />
+                  </Box>
+                </Panel>
+              </Grid>
 
               <Grid size={12}>
                 <RowLabel title="Health indicators" />
               </Grid>
 
-             <Grid size={{ xs: 12, md: 3 }}>
-              <Tile label="Avg Activity Level" value={avgActivity} />
-            </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <Tile label="Avg Activity Level" value={avgActivity} />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Tile label="Avg BMI" value={avgBMI} />
-            </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <Tile label="Avg BMI" value={avgBMI} />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Tile label="Sleep Disorder Prevalence" value={`${disorderPct}%`} />
-            </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <Tile label="Sleep Disorder Prevalence" value={`${disorderPct}%`} />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Tile label="Avg Heart Rate" value={avgHeartRate} sub=" bpm" />
-            </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <Tile label="Avg Heart Rate" value={avgHeartRate} sub=" bpm" />
+              </Grid>
+
               <Grid size={{ xs: 12, md: 8 }} sx={{ minHeight: 0 }}>
                 <Grid container spacing={1.5}>
                   <Grid size={12} sx={{ minHeight: 0 }}>
@@ -367,8 +504,8 @@ export default function SleepProfile({ data, onEnterCompare }) {
                         height={220}
                       />
                       <Box className="sp-sankey-note">
-                      Stress buckets represent relative mental-health score tiers
-                      (lowest third, middle third, highest third of the dataset).
+                        Stress buckets represent relative mental-health score tiers
+                        (lowest third, middle third, highest third of the dataset).
                       </Box>
                     </Panel>
                   </Grid>
@@ -438,7 +575,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
                       Learn about these risks
                     </Typography>
 
-                    <ul style={{ fontSize: 16,paddingLeft: 18, margin: 0 }}>
+                    <ul style={{ fontSize: 16, paddingLeft: 18, margin: 0 }}>
                       <li>
                         <a
                           href="https://www.cdc.gov/sleep/about/?CDC_AAref_Val=https://www.cdc.gov/sleep/about_sleep/sleep_hygiene.html"
