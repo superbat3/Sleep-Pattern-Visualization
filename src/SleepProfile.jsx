@@ -24,6 +24,10 @@ const ALLOWED_OCCUPATIONS = [
   "Nurse",
 ];
 
+const asset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
+
+const sleepDashboardBackground =
+  `linear-gradient(135deg, rgba(13, 26, 45, 0.84), rgba(38, 68, 110, 0.78)), url('${asset("slide-bg/custom/slide-2.jpg")}')`;
 function Tile({ label, value, sub, tone = "normal" }) {
   return (
     <Box className={`sp-tile sp-${tone}`}>
@@ -67,6 +71,7 @@ function RowLabel({ title }) {
           fontSize: 12,
           opacity: 0.75,
           letterSpacing: 0.4,
+          color: "#42506E",
         }}
       >
         {title}
@@ -120,8 +125,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
   }, [scopedData, gender, age]);
 
   const filtered = useMemo(
-    () =>
-      demographicFiltered.filter((d) => d.occupation === selectedOccupation),
+    () => demographicFiltered.filter((d) => d.occupation === selectedOccupation),
     [demographicFiltered, selectedOccupation],
   );
 
@@ -168,8 +172,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
 
   const disorderPct = filtered.length
     ? (
-        (filtered.filter((d) => d.disorder !== "None").length /
-          filtered.length) *
+        (filtered.filter((d) => d.disorder !== "None").length / filtered.length) *
         100
       ).toFixed(0)
     : "—";
@@ -234,255 +237,278 @@ export default function SleepProfile({ data, onEnterCompare }) {
   if (!data) return <div>Loading...</div>;
 
   return (
-    <Box sx={{ height: "100%", p: 2 }}>
-      <Box className="sp-card">
-        <Box className="sp-header">
-          <Box className="sp-controls">
-            <Typography className="sp-h-label">Occupation:</Typography>
-            <TextField
-              select
-              size="small"
-              value={selectedOccupation}
-              onChange={(e) => setOccupation(e.target.value)}
-              className="sp-select"
-            >
-              {occupations.map((x) => (
-                <MenuItem key={x} value={x}>
-                  {x}
-                </MenuItem>
-              ))}
-            </TextField>
+    <Box
+      sx={{
+        position: "relative",
+        height: "100%",
+        p: 2,
+        overflow: "hidden",
+        background: sleepDashboardBackground,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background:
+            "radial-gradient(circle at 14% 16%, rgba(255,255,255,0.24), transparent 28%), radial-gradient(circle at 88% 78%, rgba(255,255,255,0.18), transparent 26%)",
+        }}
+      />
 
-            <Typography className="sp-divider">|</Typography>
+      <Box sx={{ position: "relative", zIndex: 1, height: "100%" }}>
+        <Box className="sp-card">
+          <Box className="sp-header">
+            <Box className="sp-controls">
+              <Typography className="sp-h-label">Occupation:</Typography>
+              <TextField
+                select
+                size="small"
+                value={selectedOccupation}
+                onChange={(e) => setOccupation(e.target.value)}
+                className="sp-select"
+              >
+                {occupations.map((x) => (
+                  <MenuItem key={x} value={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </TextField>
 
-            <Typography className="sp-h-label">Gender:</Typography>
-            <TextField
-              select
-              size="small"
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              className="sp-select"
-            >
-              {genders.map((x) => (
-                <MenuItem key={x} value={x}>
-                  {x}
-                </MenuItem>
-              ))}
-            </TextField>
+              <Typography className="sp-divider">|</Typography>
 
-            <Typography className="sp-divider">|</Typography>
+              <Typography className="sp-h-label">Gender:</Typography>
+              <TextField
+                select
+                size="small"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="sp-select"
+              >
+                {genders.map((x) => (
+                  <MenuItem key={x} value={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </TextField>
 
-            <Typography className="sp-h-label">Age:</Typography>
-            <TextField
-              select
-              size="small"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              className="sp-select"
-            >
-              {["All", "25–34", "35–44", "45–59"].map((x) => (
-                <MenuItem key={x} value={x}>
-                  {x}
-                </MenuItem>
-              ))}
-            </TextField>
+              <Typography className="sp-divider">|</Typography>
+
+              <Typography className="sp-h-label">Age:</Typography>
+              <TextField
+                select
+                size="small"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                className="sp-select"
+              >
+                {["All", "25–34", "35–44", "45–59"].map((x) => (
+                  <MenuItem key={x} value={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Button
+                variant="text"
+                onClick={onEnterCompare}
+                sx={{
+                  color: "#2E5AA7",
+                  fontWeight: 800,
+                  textTransform: "none",
+                  whiteSpace: "nowrap",
+                  "&:hover": {
+                    textDecoration: "underline",
+                    backgroundColor: "transparent",
+                  },
+                }}
+              >
+                Enter your own information to compare
+              </Button>
+              <Typography className="sp-caret">▾</Typography>
+            </Box>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Button
-              variant="text"
-              onClick={onEnterCompare}
-              sx={{
-                color: "#ff6b6b",
-                fontWeight: 800,
-                textTransform: "none",
-                whiteSpace: "nowrap",
-                "&:hover": {
-                  textDecoration: "underline",
-                  backgroundColor: "transparent",
-                },
-              }}
-            >
-              Enter your own information to compare
-            </Button>
-            <Typography className="sp-caret">▾</Typography>
-          </Box>
-        </Box>
+          <Box className="sp-body">
+            <Grid container spacing={1.5} sx={{ alignContent: "flex-start" }}>
+              <Grid size={12}>
+                <RowLabel title="Sleep indicators" />
+              </Grid>
 
-        <Box className="sp-body">
-          <Grid container spacing={1.5} sx={{ alignContent: "flex-start" }}>
-            <Grid size={12}>
-              <RowLabel title="Sleep indicators" />
-            </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <Tile label="Avg Sleep Duration" value={avgSleep} sub=" h" />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Tile label="Avg Sleep Duration" value={avgSleep} sub=" h" />
-            </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <Tile label="Avg Sleep Quality" value={avgQuality} sub="/10" />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Tile label="Avg Sleep Quality" value={avgQuality} sub="/10" />
-            </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <Tile
+                  label="Avg Stress Level"
+                  value={avgStress}
+                  sub="/10"
+                  tone={avgStress !== "—" && +avgStress >= 7 ? "warn" : "normal"}
+                />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Tile
-                label="Avg Stress Level"
-                value={avgStress}
-                sub="/10"
-                tone={avgStress !== "—" && +avgStress >= 7 ? "warn" : "normal"}
-              />
-            </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <Tile
+                  label="Sleep Disorder Prevalence"
+                  value={disorderPct}
+                  sub="%"
+                  tone={
+                    disorderPct !== "—" && +disorderPct >= 20 ? "warn" : "normal"
+                  }
+                />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Tile
-                label="Sleep Disorder Prevalence"
-                value={disorderPct}
-                sub="%"
-                tone={
-                  disorderPct !== "—" && +disorderPct >= 20 ? "warn" : "normal"
-                }
-              />
-            </Grid>
+              <Grid size={12}>
+                <RowLabel title="Health indicators" />
+              </Grid>
 
-            <Grid size={12}>
-              <RowLabel title="Health indicators" />
-            </Grid>
+              <Grid size={{ xs: 12, md: 2 }}>
+                <Tile label="Avg Activity Level" value={avgActivity} />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 2 }}>
-              <Tile label="Avg Activity Level" value={avgActivity} />
-            </Grid>
+              <Grid size={{ xs: 12, md: 2 }}>
+                <Tile label="Avg BMI" value={avgBMI} />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 2 }}>
-              <Tile label="Avg BMI" value={avgBMI} />
-            </Grid>
+              <Grid size={{ xs: 12, md: 2 }}>
+                <Tile label="Avg Blood Pressure" value={bpAvg} />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 2 }}>
-              <Tile label="Avg Blood Pressure" value={bpAvg} />
-            </Grid>
+              <Grid size={{ xs: 12, md: 2 }}>
+                <Tile label="Avg Heart Rate" value={avgHeartRate} sub=" bpm" />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 2 }}>
-              <Tile label="Avg Heart Rate" value={avgHeartRate} sub=" bpm" />
-            </Grid>
+              <Grid size={{ xs: 12, md: 2 }}>
+                <Tile label="Avg Daily Steps" value={avgSteps} />
+              </Grid>
 
-            <Grid size={{ xs: 12, md: 2 }}>
-              <Tile label="Avg Daily Steps" value={avgSteps} />
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 8 }} sx={{ minHeight: 0 }}>
-              <Grid container spacing={1.5}>
-                <Grid size={12} sx={{ minHeight: 0 }}>
-                  <Panel title="Sankey: Occupation -> Stress -> Sleep">
-                    <SankeyFlow
-                      data={demographicFiltered}
-                      selectedOccupation={selectedOccupation}
-                      onSelectOccupation={setOccupation}
-                      height={220}
-                    />
-                    <Box className="sp-sankey-note">
-                      Stress buckets: Low 3-4, Medium 5-6, High 7-8. Sleep
-                      buckets: Short &lt; 6.5h, Normal 6.5-8h, Long &gt; 8h.
-                    </Box>
-                  </Panel>
-                </Grid>
-
-                <Grid size={12} sx={{ minHeight: 0 }}>
-                  <Panel
-                    title={currentDistributionView.title}
-                    headerAction={
-                      <Box className="sp-panel-nav">
-                        <IconButton
-                          size="small"
-                          onClick={() => cycleDistributionView(-1)}
-                          className="sp-panel-arrow"
-                        >
-                          ←
-                        </IconButton>
-                        <Typography className="sp-panel-page">
-                          {distributionViewIndex + 1}/{distributionViews.length}
-                        </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() => cycleDistributionView(1)}
-                          className="sp-panel-arrow"
-                        >
-                          →
-                        </IconButton>
+              <Grid size={{ xs: 12, md: 8 }} sx={{ minHeight: 0 }}>
+                <Grid container spacing={1.5}>
+                  <Grid size={12} sx={{ minHeight: 0 }}>
+                    <Panel title="Sankey: Occupation -> Stress -> Sleep">
+                      <SankeyFlow
+                        data={demographicFiltered}
+                        selectedOccupation={selectedOccupation}
+                        onSelectOccupation={setOccupation}
+                        height={220}
+                      />
+                      <Box className="sp-sankey-note">
+                        Stress buckets: Low 3-4, Medium 5-6, High 7-8. Sleep
+                        buckets: Short &lt; 6.5h, Normal 6.5-8h, Long &gt; 8h.
                       </Box>
-                    }
-                  >
-                    {currentDistributionView.content}
-                  </Panel>
+                    </Panel>
+                  </Grid>
+
+                  <Grid size={12} sx={{ minHeight: 0 }}>
+                    <Panel
+                      title={currentDistributionView.title}
+                      headerAction={
+                        <Box className="sp-panel-nav">
+                          <IconButton
+                            size="small"
+                            onClick={() => cycleDistributionView(-1)}
+                            className="sp-panel-arrow"
+                          >
+                            ←
+                          </IconButton>
+                          <Typography className="sp-panel-page">
+                            {distributionViewIndex + 1}/{distributionViews.length}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => cycleDistributionView(1)}
+                            className="sp-panel-arrow"
+                          >
+                            →
+                          </IconButton>
+                        </Box>
+                      }
+                    >
+                      {currentDistributionView.content}
+                    </Panel>
+                  </Grid>
                 </Grid>
               </Grid>
-            </Grid>
 
-            <Grid size={{ xs: 12, md: 4 }} sx={{ minHeight: 0 }}>
-              <Panel title="Health risks">
-                <Box className="sp-risk-col">
-                  <Box className="sp-risk sp-risk-pink">
-                    <div>
-                      <div className="sp-risk-title">
-                        Short Sleep (&lt; 7 hours)
+              <Grid size={{ xs: 12, md: 4 }} sx={{ minHeight: 0 }}>
+                <Panel title="Health risks">
+                  <Box className="sp-risk-col">
+                    <Box className="sp-risk sp-risk-pink">
+                      <div>
+                        <div className="sp-risk-title">
+                          Short Sleep (&lt; 7 hours)
+                        </div>
+                        <div className="sp-risk-pct">{shortSleepPct}%</div>
                       </div>
-                      <div className="sp-risk-pct">{shortSleepPct}%</div>
-                    </div>
-                  </Box>
+                    </Box>
 
-                  <Box className="sp-risk sp-risk-amber">
-                    <div>
-                      <div className="sp-risk-title">High Stress (≥ 7)</div>
-                      <div className="sp-risk-pct">{highStressPct}%</div>
-                    </div>
-                  </Box>
-
-                  <Box className="sp-risk sp-risk-lav">
-                    <div>
-                      <div className="sp-risk-title">
-                        Elevated BP (&gt; 130/80)
+                    <Box className="sp-risk sp-risk-amber">
+                      <div>
+                        <div className="sp-risk-title">High Stress (≥ 7)</div>
+                        <div className="sp-risk-pct">{highStressPct}%</div>
                       </div>
-                      <div className="sp-risk-pct">{highBPPct}%</div>
-                    </div>
+                    </Box>
+
+                    <Box className="sp-risk sp-risk-lav">
+                      <div>
+                        <div className="sp-risk-title">
+                          Elevated BP (≥ 130/80)
+                        </div>
+                        <div className="sp-risk-pct">{highBPPct}%</div>
+                      </div>
+                    </Box>
                   </Box>
-                </Box>
-                <Box className="sp-risk-links" sx={{ mt: 2 }}>
-                  <Typography sx={{ fontWeight: 800, mb: 0.75, fontSize: 13 }}>
-                    Learn about these risks
-                  </Typography>
 
-                  <ul style={{ paddingLeft: 18, margin: 0 }}>
-                    <li>
-                      <a
-                        href="https://www.cdc.gov/sleep/about/?CDC_AAref_Val=https://www.cdc.gov/sleep/about_sleep/sleep_hygiene.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Short sleep health effects
-                      </a>
-                    </li>
+                  <Box className="sp-risk-links" sx={{ mt: 2 }}>
+                    <Typography sx={{ fontWeight: 800, mb: 0.75, fontSize: 13 }}>
+                      Learn about these risks
+                    </Typography>
 
-                    <li>
-                      <a
-                        href="https://www.cdc.gov/mental-health/?CDC_AAref_Val=https://www.cdc.gov/mentalhealth/stress-coping/index.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Effects of chronic stress
-                      </a>
-                    </li>
+                    <ul style={{ paddingLeft: 18, margin: 0 }}>
+                      <li>
+                        <a
+                          href="https://www.cdc.gov/sleep/about/?CDC_AAref_Val=https://www.cdc.gov/sleep/about_sleep/sleep_hygiene.html"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Short sleep health effects
+                        </a>
+                      </li>
 
-                    <li>
-                      <a
-                        href="https://www.cdc.gov/high-blood-pressure/about/?CDC_AAref_Val=https://www.cdc.gov/bloodpressure/about.htm"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        High blood pressure risks
-                      </a>
-                    </li>
-                  </ul>
-                </Box>
-              </Panel>
+                      <li>
+                        <a
+                          href="https://www.cdc.gov/mental-health/?CDC_AAref_Val=https://www.cdc.gov/mentalhealth/stress-coping/index.html"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Dealing with stress and mental health
+                        </a>
+                      </li>
+
+                      <li>
+                        <a
+                          href="https://www.cdc.gov/high-blood-pressure/about/?CDC_AAref_Val=https://www.cdc.gov/bloodpressure/about.htm"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          High blood pressure risks
+                        </a>
+                      </li>
+                    </ul>
+                  </Box>
+                </Panel>
+              </Grid>
             </Grid>
-          </Grid>
+          </Box>
         </Box>
       </Box>
     </Box>

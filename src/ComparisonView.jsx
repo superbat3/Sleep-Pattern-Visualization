@@ -6,7 +6,16 @@ import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { Legend, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Tooltip, } from "recharts";
+import {
+  Legend,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 
 const ALLOWED_OCCUPATIONS = [
   "Engineer",
@@ -17,13 +26,18 @@ const ALLOWED_OCCUPATIONS = [
   "Doctor",
 ];
 
+const asset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
+
+const comparisonBackground =
+  `linear-gradient(140deg, rgba(15, 37, 58, 0.8), rgba(35, 87, 98, 0.75)), url('${asset("slide-bg/custom/slide-2.jpg")}')`;
+  
 function StatRow({ label, userValue, occupationValue, better = null }) {
   const background =
     better === "user"
       ? "rgba(120, 200, 140, 0.18)"
       : better === "occupation"
-      ? "rgba(245, 204, 140, 0.25)"
-      : "#ffffff";
+        ? "rgba(245, 204, 140, 0.25)"
+        : "rgba(255,255,255,0.84)";
 
   return (
     <Box
@@ -38,9 +52,9 @@ function StatRow({ label, userValue, occupationValue, better = null }) {
         border: "1px solid rgba(40, 50, 70, 0.12)",
       }}
     >
-      <Typography sx={{ fontWeight: 700, color: "#2b3a52" }}>{label}</Typography>
-      <Typography sx={{ textAlign: "center", color: "#2b3a52" }}>{userValue}</Typography>
-      <Typography sx={{ textAlign: "center", color: "#2b3a52" }}>{occupationValue}</Typography>
+      <Typography sx={{ fontWeight: 700, color: "#134851" }}>{label}</Typography>
+      <Typography sx={{ textAlign: "center", color: "#134851" }}>{userValue}</Typography>
+      <Typography sx={{ textAlign: "center", color: "#134851" }}>{occupationValue}</Typography>
     </Box>
   );
 }
@@ -55,6 +69,48 @@ function parseBP(bpString) {
 function formatValue(value, suffix = "") {
   if (value == null || value === "") return "—";
   return `${value}${suffix}`;
+}
+
+function ComparisonRadar({ userInput, stats }) {
+  const normalize = (value, max) => Number((Number(value) / max).toFixed(2));
+
+  const data = [
+    { metric: "Sleep", you: normalize(userInput.sleepDuration, 10), occ: normalize(stats.avgSleep, 10) },
+    { metric: "Quality", you: normalize(userInput.sleepQuality, 10), occ: normalize(stats.avgQuality, 10) },
+    { metric: "Stress", you: normalize(userInput.stress, 10), occ: normalize(stats.avgStress, 10) },
+    { metric: "Activity", you: normalize(userInput.activity, 100), occ: normalize(stats.avgActivity, 100) },
+    { metric: "BMI", you: normalize(userInput.bmi, 40), occ: normalize(stats.avgBMI, 40) },
+    { metric: "Heart Rate", you: normalize(userInput.heartRate, 120), occ: normalize(stats.avgHeartRate, 120) },
+    { metric: "Steps", you: normalize(userInput.steps, 15000), occ: normalize(stats.avgSteps, 15000) },
+  ];
+
+  return (
+    <Box sx={{ width: "100%", height: 380, mb: 4 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <RadarChart data={data}>
+          <PolarGrid />
+          <PolarAngleAxis dataKey="metric" />
+          <PolarRadiusAxis angle={30} domain={[0, 1]} />
+          <Tooltip />
+          <Legend />
+          <Radar
+            name="You"
+            dataKey="you"
+            stroke="#1E6C75"
+            fill="#1E6C75"
+            fillOpacity={0.45}
+          />
+          <Radar
+            name="Occupation Avg"
+            dataKey="occ"
+            stroke="#d13c3c"
+            fill="#d13c3c"
+            fillOpacity={0.35}
+          />
+        </RadarChart>
+      </ResponsiveContainer>
+    </Box>
+  );
 }
 
 export default function ComparisonView({
@@ -124,61 +180,43 @@ export default function ComparisonView({
     return userScore <= occScore ? "user" : "occupation";
   };
 
-function ComparisonRadar({ userInput, stats }) {
-  const normalize = (value, max) =>
-    Number((Number(value) / max).toFixed(2));
-
-  const data = [
-    { metric: "Sleep", you: normalize(userInput.sleepDuration, 10), occ: normalize(stats.avgSleep, 10) },
-    { metric: "Quality", you: normalize(userInput.sleepQuality, 10), occ: normalize(stats.avgQuality, 10) },
-    { metric: "Stress", you: normalize(userInput.stress, 10), occ: normalize(stats.avgStress, 10) },
-    { metric: "Activity", you: normalize(userInput.activity, 100), occ: normalize(stats.avgActivity, 100) },
-    { metric: "BMI", you: normalize(userInput.bmi, 40), occ: normalize(stats.avgBMI, 40) },
-    { metric: "Heart Rate", you: normalize(userInput.heartRate, 120), occ: normalize(stats.avgHeartRate, 120) },
-    { metric: "Steps", you: normalize(userInput.steps, 15000), occ: normalize(stats.avgSteps, 15000) },
-  ];
-
   return (
-    <Box sx={{ width: "100%", height: 380, mb: 4 }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <RadarChart data={data}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey="metric" />
-          <PolarRadiusAxis angle={30} domain={[0, 1]} />
-          <Tooltip />
-          <Legend />
-          <Radar
-            name="You"
-            dataKey="you"
-            stroke="#4A6CF7"
-            fill="#4A6CF7"
-            fillOpacity={0.45}
-          />
-          <Radar
-            name="Occupation Avg"
-            dataKey="occ"
-            stroke="#f11313"
-            fill="#f11313"
-            fillOpacity={0.35}
-          />
-        </RadarChart>
-      </ResponsiveContainer>
-    </Box>
-  );
-}
-
-  return (
-    <Box sx={{ p: 3, height: "100%", overflow: "auto" }}>
+    <Box
+      sx={{
+        position: "relative",
+        p: 3,
+        height: "100%",
+        overflow: "auto",
+        background: comparisonBackground,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       <Box
         sx={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background:
+            "radial-gradient(circle at 14% 16%, rgba(255,255,255,0.20), transparent 28%), radial-gradient(circle at 88% 78%, rgba(255,255,255,0.14), transparent 26%)",
+        }}
+      />
+
+      <Box
+        sx={{
+          position: "relative",
+          zIndex: 1,
           maxWidth: 1050,
           mx: "auto",
-          background: "#fbfbfc",
-          border: "2px solid rgba(40, 50, 70, 0.18)",
-          borderRadius: 3,
-          boxShadow: "0 10px 24px rgba(25, 35, 55, 0.08)",
+          background:
+            "linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(245, 253, 253, 0.62))",
+          border: "1px solid rgba(33, 99, 107, 0.2)",
+          borderRadius: 4,
+          boxShadow: "0 12px 34px rgba(10, 20, 40, 0.16)",
+          backdropFilter: "blur(4px)",
+          WebkitBackdropFilter: "blur(4px)",
           p: 3,
-          color: "#2b3a52",
+          color: "#134851",
         }}
       >
         <Stack
@@ -189,19 +227,27 @@ function ComparisonRadar({ userInput, stats }) {
           sx={{ mb: 3 }}
         >
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 900, color: "#2b3a52" }}>
+            <Typography variant="h4" sx={{ fontWeight: 900, color: "#134851" }}>
               Comparison Mode
             </Typography>
-            <Typography sx={{ color: "rgba(43, 58, 82, 0.78)", mt: 0.5 }}>
+            <Typography sx={{ color: "#2B5E67", mt: 0.5 }}>
               Compare your input against an occupation average from the dashboard.
             </Typography>
           </Box>
 
           <Stack direction="row" spacing={1.5}>
-            <Button variant="outlined" onClick={onEditInput}>
+            <Button
+              variant="outlined"
+              onClick={onEditInput}
+              sx={{ color: "#1E6C75", borderColor: "rgba(30, 108, 117, 0.45)" }}
+            >
               Re-input Data
             </Button>
-            <Button variant="outlined" onClick={onBackDashboard}>
+            <Button
+              variant="outlined"
+              onClick={onBackDashboard}
+              sx={{ color: "#1E6C75", borderColor: "rgba(30, 108, 117, 0.45)" }}
+            >
               Back to Dashboard
             </Button>
           </Stack>
@@ -232,33 +278,33 @@ function ComparisonRadar({ userInput, stats }) {
             px: 1.25,
           }}
         >
-          <Typography sx={{ fontWeight: 800, opacity: 0.75, color: "#33435d" }}>
+          <Typography sx={{ fontWeight: 800, opacity: 0.75, color: "#2B5E67" }}>
             Metric
           </Typography>
           <Typography
-            sx={{ textAlign: "center", fontWeight: 800, opacity: 0.75, color: "#4A6CF7" }}
+            sx={{ textAlign: "center", fontWeight: 800, opacity: 0.75, color: "#1E6C75" }}
           >
             You
           </Typography>
           <Typography
-            sx={{ textAlign: "center", fontWeight: 800, opacity: 0.75, color: "#f11313" }}
+            sx={{ textAlign: "center", fontWeight: 800, opacity: 0.75, color: "#d13c3c" }}
           >
             {occupation}
           </Typography>
         </Box>
 
-      <ComparisonRadar
-        userInput={userInput}
-        stats={{
-          avgSleep,
-          avgQuality,
-          avgStress,
-          avgActivity,
-          avgHeartRate,
-          avgSteps,
-          avgBMI,
-        }}
-      />
+        <ComparisonRadar
+          userInput={userInput}
+          stats={{
+            avgSleep,
+            avgQuality,
+            avgStress,
+            avgActivity,
+            avgHeartRate,
+            avgSteps,
+            avgBMI,
+          }}
+        />
 
         <Stack spacing={1.2}>
           <StatRow
@@ -320,7 +366,11 @@ function ComparisonRadar({ userInput, stats }) {
           <StatRow
             label="Sleep Disorder"
             userValue={formatValue(userInput?.disorder)}
-            occupationValue={occupationDisorderPct === "—" ? "—" : `${occupationDisorderPct}% prevalence`}
+            occupationValue={
+              occupationDisorderPct === "—"
+                ? "—"
+                : `${occupationDisorderPct}% prevalence`
+            }
           />
         </Stack>
       </Box>

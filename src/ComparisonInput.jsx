@@ -19,6 +19,11 @@ const DEFAULT_VALUES = {
   disorder: "None",
 };
 
+const asset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
+
+const inputBackground =
+  `linear-gradient(135deg, rgba(13, 26, 45, 0.84), rgba(38, 68, 110, 0.78)), url('${asset("slide-bg/custom/slide-1.jpg")}')`;
+
 function isBlank(v) {
   return v === "" || v == null;
 }
@@ -31,7 +36,10 @@ function parseBP(value) {
 }
 
 export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
-  const [values, setValues] = useState({ ...DEFAULT_VALUES, ...(initialValues ?? {}) });
+  const [values, setValues] = useState({
+    ...DEFAULT_VALUES,
+    ...(initialValues ?? {}),
+  });
   const [errors, setErrors] = useState({});
 
   const handleChange = (field) => (e) => {
@@ -51,25 +59,42 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
 
     if (isBlank(values.sleepDuration)) {
       nextErrors.sleepDuration = "Required";
-    } else if (!Number.isFinite(sleepDuration) || sleepDuration <= 0 || sleepDuration > 24) {
+    } else if (
+      !Number.isFinite(sleepDuration) ||
+      sleepDuration <= 0 ||
+      sleepDuration > 24
+    ) {
       nextErrors.sleepDuration = "Enter a value between 0 and 24";
     }
 
     if (isBlank(values.sleepQuality)) {
       nextErrors.sleepQuality = "Required";
-    } else if (!Number.isFinite(sleepQuality) || sleepQuality < 0 || sleepQuality > 10) {
+    } else if (
+      !Number.isFinite(sleepQuality) ||
+      sleepQuality < 0 ||
+      sleepQuality > 10
+    ) {
       nextErrors.sleepQuality = "Enter a value from 0.0 to 10.0";
     }
 
-    if (!isBlank(values.stress) && (!Number.isFinite(stress) || stress < 0 || stress > 10)) {
+    if (
+      !isBlank(values.stress) &&
+      (!Number.isFinite(stress) || stress < 0 || stress > 10)
+    ) {
       nextErrors.stress = "Enter a value from 0 to 10";
     }
 
-    if (!isBlank(values.activity) && (!Number.isFinite(activity) || activity < 0 || activity > 100)) {
+    if (
+      !isBlank(values.activity) &&
+      (!Number.isFinite(activity) || activity < 0 || activity > 100)
+    ) {
       nextErrors.activity = "Enter a value from 0 to 100";
     }
 
-    if (!isBlank(values.bmi) && (!Number.isFinite(bmi) || bmi < 10 || bmi > 60)) {
+    if (
+      !isBlank(values.bmi) &&
+      (!Number.isFinite(bmi) || bmi < 10 || bmi > 60)
+    ) {
       nextErrors.bmi = "Enter a BMI from 10 to 60";
     }
 
@@ -83,15 +108,22 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
         parsed.dia < 40 ||
         parsed.dia > 150
       ) {
-        nextErrors.bloodPressure = "Enter a realistic blood pressure, e.g. 125/80";
+        nextErrors.bloodPressure =
+          "Enter a realistic blood pressure, e.g. 125/80";
       }
     }
 
-    if (!isBlank(values.heartRate) && (!Number.isFinite(heartRate) || heartRate < 30 || heartRate > 220)) {
+    if (
+      !isBlank(values.heartRate) &&
+      (!Number.isFinite(heartRate) || heartRate < 30 || heartRate > 220)
+    ) {
       nextErrors.heartRate = "Enter a heart rate from 30 to 220";
     }
 
-    if (!isBlank(values.steps) && (!Number.isFinite(steps) || steps < 0 || steps > 50000)) {
+    if (
+      !isBlank(values.steps) &&
+      (!Number.isFinite(steps) || steps < 0 || steps > 50000)
+    ) {
       nextErrors.steps = "Enter daily steps from 0 to 50000";
     }
 
@@ -103,8 +135,10 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
     if (!validate()) return;
 
     onSubmit({
-      sleepDuration: values.sleepDuration === "" ? null : Number(values.sleepDuration),
-      sleepQuality: values.sleepQuality === "" ? null : Number(values.sleepQuality),
+      sleepDuration:
+        values.sleepDuration === "" ? null : Number(values.sleepDuration),
+      sleepQuality:
+        values.sleepQuality === "" ? null : Number(values.sleepQuality),
       stress: values.stress === "" ? null : Number(values.stress),
       activity: values.activity === "" ? null : Number(values.activity),
       bmi: values.bmi === "" ? null : Number(values.bmi),
@@ -116,26 +150,54 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
   };
 
   return (
-    <Box sx={{ p: 3, height: "100%", overflow: "auto" }}>
+    <Box
+      sx={{
+        position: "relative",
+        p: 3,
+        height: "100%",
+        overflow: "auto",
+        background: inputBackground,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       <Box
         sx={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background:
+            "radial-gradient(circle at 14% 16%, rgba(255,255,255,0.24), transparent 28%), radial-gradient(circle at 88% 78%, rgba(255,255,255,0.18), transparent 26%)",
+        }}
+      />
+
+      <Box
+        sx={{
+          position: "relative",
+          zIndex: 1,
           maxWidth: 900,
           mx: "auto",
-          background: "#fbfbfc",
-          border: "2px solid rgba(40, 50, 70, 0.18)",
-          borderRadius: 3,
-          boxShadow: "0 10px 24px rgba(25, 35, 55, 0.08)",
+          background:
+            "linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(246, 249, 255, 0.56))",
+          border: "1px solid rgba(34, 49, 74, 0.14)",
+          borderRadius: 4,
+          boxShadow: "0 12px 34px rgba(10, 20, 40, 0.16)",
+          backdropFilter: "blur(4px)",
+          WebkitBackdropFilter: "blur(4px)",
           p: 3,
-          color: "#2b3a52",
+          color: "#1A1E2A",
         }}
       >
-        <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, color: "#2b3a52" }}>
+        <Typography
+          variant="h4"
+          sx={{ fontWeight: 900, mb: 1, color: "#142B4F" }}
+        >
           Enter Your Own Information
         </Typography>
 
-        <Typography sx={{ mb: 3, color: "rgba(43, 58, 82, 0.78)" }}>
-          Fill out your information to compare your stats against the dashboard occupations.
-          Sleep duration and sleep quality are required.
+        <Typography sx={{ mb: 3, color: "#334D73" }}>
+          Fill out your information to compare your stats against the dashboard
+          occupations. Sleep duration and sleep quality are required.
         </Typography>
 
         <Stack spacing={2}>
@@ -223,7 +285,7 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
               error={!!errors.steps}
               helperText={errors.steps}
               inputProps={{ step: "1", min: 0, max: 50000 }}
-              placeholder = "2,000 steps≈1 mile"
+              placeholder="2,000 steps≈1 mile"
             />
 
             <TextField
@@ -241,10 +303,20 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
           </Box>
 
           <Box sx={{ display: "flex", gap: 1.5, justifyContent: "flex-end", pt: 1 }}>
-            <Button variant="outlined" onClick={onBack}>
+            <Button
+              variant="outlined"
+              onClick={onBack}
+              sx={{ color: "#2E5AA7", borderColor: "rgba(46, 90, 167, 0.5)" }}
+            >
               Back to Dashboard
             </Button>
-            <Button variant="contained" onClick={handleSubmit}>
+            <Button
+              variant="contained"
+              onClick={handleSubmit}
+              sx={{
+                background: "linear-gradient(90deg, #2E5AA7, #6A8BFF)",
+              }}
+            >
               Enter Comparison Mode
             </Button>
           </Box>
