@@ -132,38 +132,41 @@ export const slides = (data) => [
     theme: slideThemes.patterns,
     backgroundImage: asset("slide-bg/custom/slide-3.jpg"),
     highlights: [
-      "Healthcare roles show wider variability",
-      "Sales roles cluster more tightly",
-      "Apnea aligns with higher BP risk",
+      "434 individuals in this dataset",
+      "Healthcare has the highest short sleep share",
+      "Transportation leads disorder prevalence",
+      "Management tops elevated BP rate",
     ],
     body: (
       <>
         <p>
-          Our dataset of about 400 individuals revealed clear, occupation-driven differences in
-          sleep, stress, and health. These differences are not random — they form recognizable
-          sleep profiles for different job types.
+          The dataset contains <b>434 individuals</b> (with <b>326</b> records in the dashboard's
+          eight focus occupations). The results show clear, occupation linked sleep and health
+          profiles.
         </p>
 
         <ul>
           <li>
-            <b>Healthcare workers</b> such as nurses and doctors show the <b>highest variance</b> in
-            stress and sleep duration. Some sleep very little, others sleep normally, but stress is
-            consistently high.
+            <b>Healthcare</b> now has the strongest short sleep signal: <b>66.7% sleep under 7
+            hours</b>, and it also has the <b>highest average stress</b> among dashboard
+            occupations.
           </li>
 
           <li>
-            <b>Sales workers</b> have one of the <b>most uniform sleep patterns</b>, with
-            <b> insomnia</b> appearing especially often in the dataset.
+            <b>Production roles</b> show the widest sleep spread (<b>1.65h standard deviation</b>),
+            while <b>Management</b> is the tightest cluster (1.14h), showing different sleep
+            consistency profiles by occupation.
           </li>
 
           <li>
-            Individuals with <b>sleep apnea</b> show the <b>highest blood pressure</b> of any group,
-            creating a strong health-risk signal.
+            <b>Transportation / Material Moving</b> shows the highest sleep-disorder prevalence
+            (<b>23.1%</b>), followed by <b>Sales</b> (<b>19.1%</b>).
           </li>
 
           <li>
-            Occupations with <b>low physical activity</b> tend to show <b>lower sleep quality</b>
-            even when sleep duration appears relatively normal.
+            <b>Elevated blood pressure</b> is highest in <b>Management (47.6%)</b> and
+            <b> Transportation / Material Moving (44.2%)</b>, reinforcing that BP risk clusters by
+            occupation.
           </li>
         </ul>
       </>
