@@ -75,7 +75,7 @@ export function useDataset() {
             bpSys,
             bpDia,
             heartRate,
-            disorder: null, // NHANES does not distinguish insomnia/apnea
+            disorder: d.disorder ?? "None",
           };
         });
 

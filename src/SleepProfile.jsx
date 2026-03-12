@@ -189,7 +189,9 @@ export default function SleepProfile({ data, onEnterCompare }) {
     return `${s}/${di}`;
   })();
 
-  const disorderPct = "—";
+  const disorderPct = (
+  (data.filter(d => d.disorder !== "None").length / data.length) * 100
+  ).toFixed(1);
 
   const shortSleepPct = filtered.length
     ? (
@@ -348,7 +350,7 @@ export default function SleepProfile({ data, onEnterCompare }) {
               </Grid>
 
               <Grid size={{ xs: 12, md: 2 }}>
-                <Tile label="Avg Blood Pressure" value={bpAvg} />
+                <Tile label="Sleep Disorder Prevalence" value={disorderPct} />
               </Grid>
 
               <Grid size={{ xs: 12, md: 2 }}>
