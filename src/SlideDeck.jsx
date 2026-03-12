@@ -85,6 +85,19 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
         backgroundSize: "cover",
         backgroundPosition: "center",
         transition: "background 300ms ease",
+        "@keyframes slideFadeUp": {
+          from: { opacity: 0, transform: "translateY(18px)" },
+          to: { opacity: 1, transform: "translateY(0)" },
+        },
+        "@keyframes slideFadeLeft": {
+          from: { opacity: 0, transform: "translateX(-20px)" },
+          to: { opacity: 1, transform: "translateX(0)" },
+        },
+        "@keyframes slidePulseFloat": {
+          "0%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-4px)" },
+          "100%": { transform: "translateY(0px)" },
+        },
       }}
       onClick={onClickHalfNav}
     >
@@ -115,6 +128,7 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
       >
         {/* Slide Frame */}
         <Box
+          key={index}
           sx={{
             width: "100%",
             maxWidth: 1200,
@@ -130,11 +144,7 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
             textAlign: "left",
             fontFamily:
               "\"Avenir Next\", \"Segoe UI\", \"Helvetica Neue\", Arial, sans-serif",
-            animation: "fadeIn 0.45s ease",
-            "@keyframes fadeIn": {
-              from: { opacity: 0, transform: "translateY(14px)" },
-              to: { opacity: 1, transform: "translateY(0)" },
-            },
+            animation: "slideFadeUp 720ms ease forwards",
           }}
         >
           <Box
@@ -151,6 +161,8 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
               color: accent,
               background: accentSoft,
               textTransform: "uppercase",
+              opacity: 0,
+              animation: "slideFadeLeft 640ms 100ms ease forwards",
             }}
           >
             Guided Story
@@ -165,6 +177,8 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
               textTransform: "uppercase",
               color: theme.subtitleColor,
               mb: 2,
+              opacity: 0,
+              animation: "slideFadeLeft 640ms 180ms ease forwards",
             }}
           >
             Slide {index + 1} / {slides.length}
@@ -180,6 +194,8 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
               letterSpacing: -0.6,
               mb: 2,
               color: theme.titleColor,
+              opacity: 0,
+              animation: "slideFadeUp 780ms 260ms ease forwards",
             }}
           >
             {slide.title}
@@ -195,6 +211,8 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
                 lineHeight: 1.45,
                 color: theme.subtitleColor,
                 fontWeight: 500,
+                opacity: 0,
+                animation: "slideFadeUp 780ms 360ms ease forwards",
               }}
             >
               {slide.subtitle}
@@ -208,9 +226,11 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
                 flexWrap: "wrap",
                 gap: 1,
                 mb: 2.2,
+                opacity: 0,
+                animation: "slideFadeUp 780ms 460ms ease forwards",
               }}
             >
-              {slide.highlights.map((item) => (
+              {slide.highlights.map((item, itemIndex) => (
                 <Box
                   key={item}
                   sx={{
@@ -223,6 +243,8 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
                     fontSize: 13,
                     fontWeight: 700,
                     lineHeight: 1.2,
+                    opacity: 0,
+                    animation: `slideFadeUp 640ms ${560 + itemIndex * 120}ms ease forwards`,
                   }}
                 >
                   {item}
@@ -242,6 +264,9 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
                 borderRadius: 3,
                 my: 3,
                 boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+                opacity: 0,
+                animation:
+                  "slideFadeUp 780ms 680ms ease forwards, slidePulseFloat 6s 1500ms ease-in-out infinite",
               }}
             />
           )}
@@ -278,6 +303,8 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
               },
               "& li::marker": { color: accent, fontSize: "1.05em" },
               "& b": { color: theme.titleColor, fontWeight: 800 },
+              opacity: 0,
+              animation: "slideFadeUp 860ms 760ms ease forwards",
             }}
           >
             {slide.body}
