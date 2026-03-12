@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 function clamp(v, lo, hi) {
   return Math.max(lo, Math.min(hi, v));
@@ -34,6 +34,13 @@ export default function DistributionHist({
   const wrapRef = useRef(null);
   const svgRef = useRef(null);
   const { width } = useResizeObserver(wrapRef);
+
+  const [tooltip, setTooltip] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    label: "",
+  });
 
   const values = useMemo(() => {
     if (!Array.isArray(data)) return [];
@@ -79,16 +86,14 @@ export default function DistributionHist({
 
   const barW = counts.length ? innerW / counts.length : 0;
   const xLabelEvery = counts.length > 12 ? 2 : 1;
-  // D3 Animation
+
   useEffect(() => {
     if (!svgRef.current) return;
 
     const svg = d3.select(svgRef.current);
     const bars = svg.selectAll(".hist-bar");
 
-    bars
-      .attr("y", pad.top + innerH)
-      .attr("height", 0);
+    bars.attr("y", pad.top + innerH).attr("height", 0);
 
     bars
       .transition()
@@ -104,7 +109,10 @@ export default function DistributionHist({
   }, [counts, width, innerH]);
 
   return (
-    <div ref={wrapRef} style={{ width: "100%", height: "100%" }}>
+    <div
+      ref={wrapRef}
+      style={{ width: "100%", height: "100%", position: "relative" }}
+    >
       <svg
         ref={svgRef}
         width="100%"
@@ -140,6 +148,7 @@ export default function DistributionHist({
           const x = pad.left + i * barW + 2;
           const y = pad.top + innerH - h;
           const w = Math.max(0, barW - 4);
+          const label = `${edges[i].toFixed(1)}–${edges[i + 1].toFixed(1)} h: ${cnt}`;
 
           return (
             <g key={i}>
@@ -153,10 +162,20 @@ export default function DistributionHist({
                 opacity="0.9"
                 data-y={y}
                 data-h={h}
+                onMouseMove={(e) => {
+                  const bounds = wrapRef.current?.getBoundingClientRect();
+                  if (!bounds) return;
+                  setTooltip({
+                    visible: true,
+                    x: e.clientX - bounds.left + 10,
+                    y: e.clientY - bounds.top - 36,
+                    label,
+                  });
+                }}
+                onMouseLeave={() =>
+                  setTooltip((prev) => ({ ...prev, visible: false }))
+                }
               />
-              <title>
-                {`${edges[i].toFixed(1)}–${edges[i + 1].toFixed(1)} h: ${cnt}`}
-              </title>
             </g>
           );
         })}
@@ -180,27 +199,27 @@ export default function DistributionHist({
           })}
 
         <text
-        x={pad.left + innerW / 2}
-        y={pad.top + innerH + 32}
-        fontSize="9"
-        fontWeight="600"
-        textAnchor="middle"
-        opacity="0.85"
-      >
-        Sleep Duration (hours)
-      </text>
+          x={pad.left + innerW / 2}
+          y={pad.top + innerH + 32}
+          fontSize="9"
+          fontWeight="600"
+          textAnchor="middle"
+          opacity="0.85"
+        >
+          Sleep Duration (hours)
+        </text>
 
-      <text
-      x={pad.left - 32}
-      y={pad.top + innerH / 2}
-      fontSize="13"
-      fontWeight="600"
-      textAnchor="middle"
-      opacity="0.85"
-      transform={`rotate(-90, ${pad.left - 32}, ${pad.top + innerH / 2})`}
-    >
-      Count
-    </text>
+        <text
+          x={pad.left - 32}
+          y={pad.top + innerH / 2}
+          fontSize="13"
+          fontWeight="600"
+          textAnchor="middle"
+          opacity="0.85"
+          transform={`rotate(-90, ${pad.left - 32}, ${pad.top + innerH / 2})`}
+        >
+          Count
+        </text>
 
         <text x={10} y={pad.top + innerH} fontSize="12" fontWeight="600" opacity="0.75">
           0
@@ -216,6 +235,26 @@ export default function DistributionHist({
           </text>
         )}
       </svg>
+
+      {tooltip.visible && (
+        <div
+          style={{
+            position: "absolute",
+            left: tooltip.x,
+            top: tooltip.y,
+            pointerEvents: "none",
+            background: "rgba(0, 0, 0, 0.8)",
+            color: "white",
+            padding: "6px 8px",
+            borderRadius: "4px",
+            fontSize: "12px",
+            whiteSpace: "nowrap",
+            zIndex: 10,
+          }}
+        >
+          {tooltip.label}
+        </div>
+      )}
     </div>
   );
 }

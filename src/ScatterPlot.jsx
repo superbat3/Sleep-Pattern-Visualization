@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 function useResizeObserver(ref) {
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -28,6 +28,12 @@ function useResizeObserver(ref) {
   return size;
 }
 
+function deterministicJitter(index, amt, offset = 0) {
+  const seed = Math.sin((index + 1) * 12.9898 + offset * 78.233) * 43758.5453;
+  const frac = seed - Math.floor(seed);
+  return (frac - 0.5) * amt;
+}
+
 export default function ScatterPlot({ data }) {
   const wrapRef = useRef(null);
   const svgRef = useRef(null);
@@ -35,39 +41,31 @@ export default function ScatterPlot({ data }) {
 
   const { width } = useResizeObserver(wrapRef);
 
-  const height = 260;
-  const pad = { top: 28, right: 20, bottom: 40, left: 50 };
+  const height = 220;
+  const pad = { top: 8, right: 16, bottom: 34, left: 60 };
 
   const innerW = Math.max(0, (width || 0) - pad.left - pad.right);
   const innerH = height - pad.top - pad.bottom;
 
-  const jitter = (amt) => (Math.random() - 0.5) * amt;
-
-  // ✔ Only use the data passed in (already filtered by occupation)
   const points = useMemo(() => {
     if (!Array.isArray(data)) return [];
-    return data.map((d) => ({
-      sleep: +d.sleepDuration + jitter(0.25),
-      stress: +d.stress + jitter(0.25),
+    return data.map((d, i) => ({
+      sleep: +d.sleepDuration + deterministicJitter(i, 0.25, 1),
+      stress: +d.stress + deterministicJitter(i, 0.25, 2),
     }));
   }, [data]);
 
-  // ✔ Single color for all points
   const dotColor = "#4A6CF7";
 
-  const maxStress = (d3.max(points, d => d.stress) ?? 10) + 0.5;
-  const minStress = (d3.min(points, d => d.stress) ?? 0) - 0.5;
+  const maxStress = (d3.max(points, (d) => d.stress) ?? 10) + 0.5;
+  const minStress = (d3.min(points, (d) => d.stress) ?? 0) - 0.5;
 
-  const maxSleep = (d3.max(points, d => d.sleep) ?? 10) + 0.5;
-  const minSleep = (d3.min(points, d => d.sleep) ?? 0) - 0.5;
+  const maxSleep = (d3.max(points, (d) => d.sleep) ?? 10) + 0.5;
+  const minSleep = (d3.min(points, (d) => d.sleep) ?? 0) - 0.5;
 
-  const x = d3.scaleLinear()
-    .domain([minStress, maxStress])
-    .range([0, innerW]);
+  const x = d3.scaleLinear().domain([minStress, maxStress]).range([0, innerW]);
 
-  const y = d3.scaleLinear()
-    .domain([minSleep, maxSleep])
-    .range([innerH, 0]);
+  const y = d3.scaleLinear().domain([minSleep, maxSleep]).range([innerH, 0]);
 
   useEffect(() => {
     if (!svgRef.current || !tooltipRef.current) return;
@@ -78,7 +76,8 @@ export default function ScatterPlot({ data }) {
 
     const dots = svg.selectAll("circle.dot").data(points, (_, i) => i);
 
-    dots.enter()
+    dots
+      .enter()
       .append("circle")
       .attr("class", "dot")
       .attr("cx", () => pad.left + innerW / 2)
@@ -91,8 +90,8 @@ export default function ScatterPlot({ data }) {
       .on("mousemove", function (event, d) {
         tooltip
           .style("opacity", 1)
-          .style("left", event.offsetX + 12 + "px")
-          .style("top", event.offsetY + 12 + "px")
+          .style("left", `${event.offsetX + 12}px`)
+          .style("top", `${event.offsetY + 12}px`)
           .html(`
             <div>Sleep: ${d.sleep.toFixed(1)} hrs</div>
             <div>Stress: ${d.stress.toFixed(1)}</div>
@@ -110,8 +109,8 @@ export default function ScatterPlot({ data }) {
       .on("mousemove", function (event, d) {
         tooltip
           .style("opacity", 1)
-          .style("left", event.offsetX + 12 + "px")
-          .style("top", event.offsetY + 12 + "px")
+          .style("left", `${event.offsetX + 12}px`)
+          .style("top", `${event.offsetY + 12}px`)
           .html(`
             <div>Sleep: ${d.sleep.toFixed(1)} hrs</div>
             <div>Stress: ${d.stress.toFixed(1)}</div>
@@ -124,14 +123,34 @@ export default function ScatterPlot({ data }) {
       .attr("cy", (d) => pad.top + y(d.sleep));
 
     dots.exit().remove();
-  }, [points, width, innerW, innerH]);
+  }, [points, width, innerW, innerH, x, y]);
 
   if (!width || width === 0) {
-    return <div ref={wrapRef} style={{ width: "100%", height: "100%", position: "relative" }} />;
+    return (
+      <div
+        ref={wrapRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          overflow: "hidden",
+          minWidth: 0,
+        }}
+      />
+    );
   }
 
   return (
-    <div ref={wrapRef} style={{ width: "100%", height: "100%", position: "relative" }}>
+    <div
+      ref={wrapRef}
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        overflow: "hidden",
+        minWidth: 0,
+      }}
+    >
       <div
         ref={tooltipRef}
         style={{
@@ -144,6 +163,8 @@ export default function ScatterPlot({ data }) {
           fontSize: "12px",
           opacity: 0,
           transition: "opacity 0.15s",
+          maxWidth: "140px",
+          zIndex: 2,
         }}
       />
 
@@ -153,10 +174,6 @@ export default function ScatterPlot({ data }) {
         height={height}
         viewBox={`0 0 ${Math.max(1, width || 1)} ${height}`}
       >
-        <text x={pad.left} y={20} fontSize="14" fontWeight="700" opacity="0.9">
-          Sleep vs. Stress
-        </text>
-
         <line
           x1={pad.left}
           y1={pad.top + innerH}
@@ -167,8 +184,8 @@ export default function ScatterPlot({ data }) {
         />
         <text
           x={pad.left + innerW / 2}
-          y={pad.top + innerH + 32}
-          fontSize="12"
+          y={pad.top + innerH + 28}
+          fontSize="11"
           textAnchor="middle"
           opacity="0.75"
         >
@@ -183,22 +200,32 @@ export default function ScatterPlot({ data }) {
           stroke="currentColor"
           opacity="0.35"
         />
+
         <text
           x={pad.left - 10}
-          y={pad.top - 6}
-          fontSize="12"
+          y={pad.top + 2}
+          fontSize="11"
           textAnchor="end"
           opacity="0.75"
         >
-          Sleep (hrs)
+          Sleep
+        </text>
+        <text
+          x={pad.left - 10}
+          y={pad.top + 14}
+          fontSize="10"
+          textAnchor="end"
+          opacity="0.65"
+        >
+          (hrs)
         </text>
 
         {x.ticks(5).map((t, i) => (
           <text
             key={i}
             x={pad.left + x(t)}
-            y={pad.top + innerH + 20}
-            fontSize="11"
+            y={pad.top + innerH + 16}
+            fontSize="10"
             textAnchor="middle"
             opacity="0.6"
           >
@@ -211,7 +238,7 @@ export default function ScatterPlot({ data }) {
             key={i}
             x={pad.left - 8}
             y={pad.top + y(t) + 4}
-            fontSize="11"
+            fontSize="10"
             textAnchor="end"
             opacity="0.6"
           >

@@ -144,22 +144,17 @@
 .sp-risk {
   border-radius: 10px;
   border: 2px solid rgba(40, 50, 70, 0.12);
-  display: grid;
-  grid-template-columns: 44px 1fr;
+  display: flex;
   align-items: center;
   overflow: hidden;
-  padding: 10px 10px;
+  padding: 10px 12px;
 }
 
-.sp-risk-ic {
-  font-size: 18px;
-  display: grid;
-  place-items: center;
-}
 
 .sp-risk-title {
   font-weight: 950;
   color: #2f3f58;
+  white-space: nowrap;
 }
 
 .sp-risk-pct {
@@ -237,4 +232,19 @@
   color: rgba(30, 40, 60, 0.66);
   font-size: 12px;
   line-height: 1.35;
+}
+
+.sp-risk-links {
+  font-size: 13px;
+}
+
+.sp-risk-links a {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c5aa0;
+  text-decoration: none;
+}
+
+.sp-risk-links a:hover {
+  text-decoration: underline;
 }
