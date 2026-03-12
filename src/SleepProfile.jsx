@@ -434,11 +434,11 @@ export default function SleepProfile({ data, onEnterCompare }) {
                   </Box>
 
                   <Box className="sp-risk-links" sx={{ mt: 2 }}>
-                    <Typography sx={{ fontWeight: 800, mb: 0.75, fontSize: 13 }}>
+                    <Typography sx={{ fontWeight: 800, mb: 0.75, fontSize: 16 }}>
                       Learn about these risks
                     </Typography>
 
-                    <ul style={{ paddingLeft: 18, margin: 0 }}>
+                    <ul style={{ fontSize: 16,paddingLeft: 18, margin: 0 }}>
                       <li>
                         <a
                           href="https://www.cdc.gov/sleep/about/?CDC_AAref_Val=https://www.cdc.gov/sleep/about_sleep/sleep_hygiene.html"

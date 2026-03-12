@@ -9,30 +9,19 @@ import Typography from "@mui/material/Typography";
 
 const DEFAULT_VALUES = {
   sleepDuration: "",
-  sleepQuality: "",
   stress: "",
-  activity: "",
+  activityLevel: "",
   bmi: "",
-  bloodPressure: "",
   heartRate: "",
-  steps: "",
   disorder: "None",
 };
 
 const asset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
 
-const inputBackground =
-  `linear-gradient(135deg, rgba(13, 26, 45, 0.84), rgba(38, 68, 110, 0.78)), url('${asset("slide-bg/custom/slide-1.jpg")}')`;
+const inputBackground = `linear-gradient(135deg, rgba(13, 26, 45, 0.84), rgba(38, 68, 110, 0.78)), url('${asset("slide-bg/custom/slide-1.jpg")}')`;
 
 function isBlank(v) {
   return v === "" || v == null;
-}
-
-function parseBP(value) {
-  const raw = String(value ?? "").trim();
-  const match = raw.match(/^(\d{2,3})\/(\d{2,3})$/);
-  if (!match) return null;
-  return { sys: Number(match[1]), dia: Number(match[2]) };
 }
 
 export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
@@ -50,12 +39,10 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
     const nextErrors = {};
 
     const sleepDuration = Number(values.sleepDuration);
-    const sleepQuality = Number(values.sleepQuality);
     const stress = Number(values.stress);
-    const activity = Number(values.activity);
+    const activityLevel = Number(values.activityLevel);
     const bmi = Number(values.bmi);
     const heartRate = Number(values.heartRate);
-    const steps = Number(values.steps);
 
     if (isBlank(values.sleepDuration)) {
       nextErrors.sleepDuration = "Required";
@@ -67,16 +54,6 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
       nextErrors.sleepDuration = "Enter a value between 0 and 24";
     }
 
-    if (isBlank(values.sleepQuality)) {
-      nextErrors.sleepQuality = "Required";
-    } else if (
-      !Number.isFinite(sleepQuality) ||
-      sleepQuality < 0 ||
-      sleepQuality > 10
-    ) {
-      nextErrors.sleepQuality = "Enter a value from 0.0 to 10.0";
-    }
-
     if (
       !isBlank(values.stress) &&
       (!Number.isFinite(stress) || stress < 0 || stress > 10)
@@ -85,32 +62,17 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
     }
 
     if (
-      !isBlank(values.activity) &&
-      (!Number.isFinite(activity) || activity < 0 || activity > 100)
+      !isBlank(values.activityLevel) &&
+      (!Number.isFinite(activityLevel) || activityLevel < 0 || activityLevel > 10)
     ) {
-      nextErrors.activity = "Enter a value from 0 to 100";
+      nextErrors.activityLevel = "Enter a value from 0 to 10";
     }
 
     if (
       !isBlank(values.bmi) &&
-      (!Number.isFinite(bmi) || bmi < 10 || bmi > 60)
+      (!Number.isFinite(bmi) || bmi < 10 || bmi > 80)
     ) {
-      nextErrors.bmi = "Enter a BMI from 10 to 60";
-    }
-
-    if (!isBlank(values.bloodPressure)) {
-      const parsed = parseBP(values.bloodPressure);
-      if (!parsed) {
-        nextErrors.bloodPressure = "Use format SYS/DIA, e.g. 125/80";
-      } else if (
-        parsed.sys < 70 ||
-        parsed.sys > 250 ||
-        parsed.dia < 40 ||
-        parsed.dia > 150
-      ) {
-        nextErrors.bloodPressure =
-          "Enter a realistic blood pressure, e.g. 125/80";
-      }
+      nextErrors.bmi = "Enter a BMI from 10 to 80";
     }
 
     if (
@@ -118,13 +80,6 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
       (!Number.isFinite(heartRate) || heartRate < 30 || heartRate > 220)
     ) {
       nextErrors.heartRate = "Enter a heart rate from 30 to 220";
-    }
-
-    if (
-      !isBlank(values.steps) &&
-      (!Number.isFinite(steps) || steps < 0 || steps > 50000)
-    ) {
-      nextErrors.steps = "Enter daily steps from 0 to 50000";
     }
 
     setErrors(nextErrors);
@@ -137,14 +92,11 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
     onSubmit({
       sleepDuration:
         values.sleepDuration === "" ? null : Number(values.sleepDuration),
-      sleepQuality:
-        values.sleepQuality === "" ? null : Number(values.sleepQuality),
       stress: values.stress === "" ? null : Number(values.stress),
-      activity: values.activity === "" ? null : Number(values.activity),
+      activityLevel:
+        values.activityLevel === "" ? null : Number(values.activityLevel),
       bmi: values.bmi === "" ? null : Number(values.bmi),
-      bloodPressure: values.bloodPressure || "",
       heartRate: values.heartRate === "" ? null : Number(values.heartRate),
-      steps: values.steps === "" ? null : Number(values.steps),
       disorder: values.disorder || "None",
     });
   };
@@ -197,7 +149,7 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
 
         <Typography sx={{ mb: 3, color: "#334D73" }}>
           Fill out your information to compare your stats against the dashboard
-          occupations. Sleep duration and sleep quality are required.
+          occupations. Sleep duration is required.
         </Typography>
 
         <Stack spacing={2}>
@@ -209,23 +161,13 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
             }}
           >
             <TextField
-              label="Hours of Sleep (24)"
+              label="Hours of Sleep"
               type="number"
               value={values.sleepDuration}
               onChange={handleChange("sleepDuration")}
               error={!!errors.sleepDuration}
               helperText={errors.sleepDuration}
-              inputProps={{ step: "0.1", min: 0.1, max: 24.0 }}
-            />
-
-            <TextField
-              label="Sleep Quality /10 *"
-              type="number"
-              value={values.sleepQuality}
-              onChange={handleChange("sleepQuality")}
-              error={!!errors.sleepQuality}
-              helperText={errors.sleepQuality}
-              inputProps={{ step: "0.1", min: 0, max: 10 }}
+              inputProps={{ step: "0.1", min: 0.1, max: 24 }}
             />
 
             <TextField
@@ -239,13 +181,13 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
             />
 
             <TextField
-              label="Physical Activity Level (100)"
+              label="Activity Level /10"
               type="number"
-              value={values.activity}
-              onChange={handleChange("activity")}
-              error={!!errors.activity}
-              helperText={errors.activity}
-              inputProps={{ step: "0.1", min: 0, max: 100 }}
+              value={values.activityLevel}
+              onChange={handleChange("activityLevel")}
+              error={!!errors.activityLevel}
+              helperText={errors.activityLevel}
+              inputProps={{ step: "0.1", min: 0, max: 10 }}
             />
 
             <TextField
@@ -254,38 +196,18 @@ export default function ComparisonInput({ initialValues, onBack, onSubmit }) {
               value={values.bmi}
               onChange={handleChange("bmi")}
               error={!!errors.bmi}
-              helperText={errors.bmi || "Healthy Weight: 18.5 – 24.9"}
-              inputProps={{ step: "0.1", min: 10, max: 60 }}
+              helperText={errors.bmi || "Example: 18.5 – 24.9 is often considered healthy"}
+              inputProps={{ step: "0.1", min: 10, max: 80 }}
             />
 
             <TextField
-              label="Blood Pressure"
-              value={values.bloodPressure}
-              onChange={handleChange("bloodPressure")}
-              error={!!errors.bloodPressure}
-              helperText={errors.bloodPressure || "Format: SYS/DIA"}
-              placeholder="125/80"
-            />
-
-            <TextField
-              label="Heart Rate (min:30, max:220)"
+              label="Heart Rate"
               type="number"
               value={values.heartRate}
               onChange={handleChange("heartRate")}
               error={!!errors.heartRate}
               helperText={errors.heartRate}
               inputProps={{ step: "0.1", min: 30, max: 220 }}
-            />
-
-            <TextField
-              label="Daily Steps"
-              type="number"
-              value={values.steps}
-              onChange={handleChange("steps")}
-              error={!!errors.steps}
-              helperText={errors.steps}
-              inputProps={{ step: "1", min: 0, max: 50000 }}
-              placeholder="2,000 steps≈1 mile"
             />
 
             <TextField

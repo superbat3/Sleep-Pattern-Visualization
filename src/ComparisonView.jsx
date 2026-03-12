@@ -7,7 +7,6 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import {
-  Legend,
   PolarAngleAxis,
   PolarGrid,
   PolarRadiusAxis,
@@ -18,19 +17,31 @@ import {
 } from "recharts";
 
 const ALLOWED_OCCUPATIONS = [
-  "Engineer",
-  "Accountant",
-  "Lawyer",
-  "Teacher",
-  "Salesperson",
-  "Doctor",
+  "Management",
+  "Healthcare",
+  "Production",
+  "Food_Preparation_Serving",
+  "Sales",
+  "Office_Administrative_Support",
+  "Construction_Extraction",
+  "Transportation_Material_Moving",
 ];
+
+const OCC_LABELS = {
+  Management: "Management",
+  Healthcare: "Healthcare",
+  Production: "Production",
+  Food_Preparation_Serving: "Food Service",
+  Sales: "Sales",
+  Office_Administrative_Support: "Office / Admin Support",
+  Construction_Extraction: "Construction & Extraction",
+  Transportation_Material_Moving: "Transportation / Material Moving",
+};
 
 const asset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
 
-const comparisonBackground =
-  `linear-gradient(140deg, rgba(15, 37, 58, 0.8), rgba(35, 87, 98, 0.75)), url('${asset("slide-bg/custom/slide-2.jpg")}')`;
-  
+const comparisonBackground = `linear-gradient(140deg, rgba(15, 37, 58, 0.8), rgba(35, 87, 98, 0.75)), url('${asset("slide-bg/custom/slide-2.jpg")}')`;
+
 function StatRow({ label, userValue, occupationValue, better = null }) {
   const background =
     better === "user"
@@ -71,41 +82,137 @@ function formatValue(value, suffix = "") {
   return `${value}${suffix}`;
 }
 
-function ComparisonRadar({ userInput, stats }) {
-  const normalize = (value, max) => Number((Number(value) / max).toFixed(2));
+function toNumberOrNull(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
 
-  const data = [
-    { metric: "Sleep", you: normalize(userInput.sleepDuration, 10), occ: normalize(stats.avgSleep, 10) },
-    { metric: "Quality", you: normalize(userInput.sleepQuality, 10), occ: normalize(stats.avgQuality, 10) },
-    { metric: "Stress", you: normalize(userInput.stress, 10), occ: normalize(stats.avgStress, 10) },
-    { metric: "Activity", you: normalize(userInput.activity, 100), occ: normalize(stats.avgActivity, 100) },
-    { metric: "BMI", you: normalize(userInput.bmi, 40), occ: normalize(stats.avgBMI, 40) },
-    { metric: "Heart Rate", you: normalize(userInput.heartRate, 120), occ: normalize(stats.avgHeartRate, 120) },
-    { metric: "Steps", you: normalize(userInput.steps, 15000), occ: normalize(stats.avgSteps, 15000) },
+function normalize(value, max) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || !Number.isFinite(max) || max <= 0) return 0;
+  return Math.min(n / max, 1);
+}
+
+function formatRadarRaw(value, suffix = "") {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return `${value.toFixed(1)}${suffix}`;
+}
+
+function CustomRadarTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+
+  const row = payload[0]?.payload;
+  if (!row) return null;
+
+  return (
+    <Box
+      sx={{
+        background: "rgba(255,255,255,0.96)",
+        border: "1px solid rgba(40, 50, 70, 0.16)",
+        borderRadius: 2,
+        px: 1.5,
+        py: 1,
+        boxShadow: "0 8px 20px rgba(10, 20, 40, 0.14)",
+      }}
+    >
+      <Typography sx={{ fontWeight: 800, fontSize: 13, color: "#134851", mb: 0.5 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ fontSize: 13, color: "#1E6C75" }}>
+        You: {formatRadarRaw(row.youRaw, row.suffix)}
+      </Typography>
+      <Typography sx={{ fontSize: 13, color: "#d13c3c" }}>
+        Occupation Avg: {formatRadarRaw(row.occRaw, row.suffix)}
+      </Typography>
+    </Box>
+  );
+}
+
+function ComparisonRadar({ userInput, stats }) {
+  const radarData = [
+    {
+      metric: "Sleep",
+      you: normalize(userInput?.sleepDuration, 10),
+      occ: normalize(stats.avgSleep, 10),
+      youRaw: toNumberOrNull(userInput?.sleepDuration),
+      occRaw: toNumberOrNull(stats.avgSleep),
+      suffix: " h",
+    },
+    {
+      metric: "Stress",
+      you: normalize(userInput?.stress, 10),
+      occ: normalize(stats.avgStress, 10),
+      youRaw: toNumberOrNull(userInput?.stress),
+      occRaw: toNumberOrNull(stats.avgStress),
+      suffix: "/10",
+    },
+    {
+      metric: "Activity",
+      you: normalize(userInput?.activityLevel, 10),
+      occ: normalize(stats.avgActivity, 10),
+      youRaw: toNumberOrNull(userInput?.activityLevel),
+      occRaw: toNumberOrNull(stats.avgActivity),
+      suffix: "/10",
+    },
+    {
+      metric: "BMI",
+      you: normalize(userInput?.bmi, 60),
+      occ: normalize(stats.avgBMI, 60),
+      youRaw: toNumberOrNull(userInput?.bmi),
+      occRaw: toNumberOrNull(stats.avgBMI),
+      suffix: "",
+    },
+    {
+      metric: "Heart Rate",
+      you: normalize(userInput?.heartRate, 120),
+      occ: normalize(stats.avgHeartRate, 120),
+      youRaw: toNumberOrNull(userInput?.heartRate),
+      occRaw: toNumberOrNull(stats.avgHeartRate),
+      suffix: " bpm",
+    },
   ];
 
   return (
     <Box sx={{ width: "100%", height: 380, mb: 4 }}>
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart data={data}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey="metric" />
-          <PolarRadiusAxis angle={30} domain={[0, 1]} />
-          <Tooltip />
-          <Legend />
+        <RadarChart data={radarData} outerRadius="72%">
+          <PolarGrid
+            radialLines={true}
+            stroke="rgba(60,80,110,0.45)"
+          />
+
+          <PolarAngleAxis
+            dataKey="metric"
+            tickLine={false}
+            axisLine={false}
+          />
+
+          <PolarRadiusAxis
+            domain={[0, 1]}
+            tick={false}
+            axisLine={false}
+          />
+
+          <Tooltip content={<CustomRadarTooltip />} cursor={false} />
+
           <Radar
             name="You"
             dataKey="you"
             stroke="#1E6C75"
             fill="#1E6C75"
             fillOpacity={0.45}
+            dot={false}
+            activeDot={false}
           />
+
           <Radar
             name="Occupation Avg"
             dataKey="occ"
             stroke="#d13c3c"
             fill="#d13c3c"
             fillOpacity={0.35}
+            dot={false}
+            activeDot={false}
           />
         </RadarChart>
       </ResponsiveContainer>
@@ -119,7 +226,7 @@ export default function ComparisonView({
   onBackDashboard,
   onEditInput,
 }) {
-  const [occupation, setOccupation] = useState("Doctor");
+  const [occupation, setOccupation] = useState(ALLOWED_OCCUPATIONS[0]);
 
   const filtered = useMemo(() => {
     if (!Array.isArray(data)) return [];
@@ -130,21 +237,10 @@ export default function ComparisonView({
     arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : "—";
 
   const avgSleep = avg(filtered.map((d) => d.sleepDuration).filter(Number.isFinite));
-  const avgQuality = avg(filtered.map((d) => d.sleepQuality).filter(Number.isFinite));
   const avgStress = avg(filtered.map((d) => d.stress).filter(Number.isFinite));
-  const avgActivity = avg(filtered.map((d) => d.activity).filter(Number.isFinite));
+  const avgActivity = avg(filtered.map((d) => d.activityLevel).filter(Number.isFinite));
   const avgHeartRate = avg(filtered.map((d) => d.heartRate).filter(Number.isFinite));
-  const avgSteps = avg(filtered.map((d) => d.steps).filter(Number.isFinite));
-
-  const bmiMap = {
-    Underweight: 18,
-    Normal: 22,
-    "Normal Weight": 22,
-    Overweight: 27,
-    Obese: 32,
-  };
-
-  const avgBMI = avg(filtered.map((d) => bmiMap[d.bmiCategory]).filter(Number.isFinite));
+  const avgBMI = avg(filtered.map((d) => d.bmi).filter(Number.isFinite));
 
   const bpAvg = (() => {
     if (!filtered.length) return "—";
@@ -157,7 +253,11 @@ export default function ComparisonView({
   })();
 
   const occupationDisorderPct = filtered.length
-    ? ((filtered.filter((d) => d.disorder !== "None").length / filtered.length) * 100).toFixed(0)
+    ? (
+        (filtered.filter((d) => d.disorder && d.disorder !== "None").length /
+          filtered.length) *
+        100
+      ).toFixed(0)
     : "—";
 
   const userBP = parseBP(userInput?.bloodPressure ?? "");
@@ -261,9 +361,9 @@ export default function ComparisonView({
             value={occupation}
             onChange={(e) => setOccupation(e.target.value)}
           >
-            {ALLOWED_OCCUPATIONS.map((x) => (
-              <MenuItem key={x} value={x}>
-                {x}
+            {ALLOWED_OCCUPATIONS.map((occ) => (
+              <MenuItem key={occ} value={occ}>
+                {OCC_LABELS[occ] ?? occ}
               </MenuItem>
             ))}
           </TextField>
@@ -271,37 +371,48 @@ export default function ComparisonView({
 
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: "1.4fr 1fr 1fr",
-            gap: 1,
+            display: "flex",
+            justifyContent: "center",
+            gap: { xs: 4, md: 8 },
+            alignItems: "center",
             mb: 1.5,
-            px: 1.25,
+            flexWrap: "wrap",
           }}
         >
-          <Typography sx={{ fontWeight: 800, opacity: 0.75, color: "#2B5E67" }}>
-            Metric
-          </Typography>
-          <Typography
-            sx={{ textAlign: "center", fontWeight: 800, opacity: 0.75, color: "#1E6C75" }}
-          >
-            You
-          </Typography>
-          <Typography
-            sx={{ textAlign: "center", fontWeight: 800, opacity: 0.75, color: "#d13c3c" }}
-          >
-            {occupation}
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
+              sx={{
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                backgroundColor: "#1E6C75",
+              }}
+            />
+            <Typography sx={{ fontWeight: 800, color: "#1E6C75" }}>You</Typography>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
+              sx={{
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                backgroundColor: "#d13c3c",
+              }}
+            />
+            <Typography sx={{ fontWeight: 800, color: "#d13c3c" }}>
+              {OCC_LABELS[occupation] ?? occupation}
+            </Typography>
+          </Box>
         </Box>
 
         <ComparisonRadar
           userInput={userInput}
           stats={{
             avgSleep,
-            avgQuality,
             avgStress,
             avgActivity,
             avgHeartRate,
-            avgSteps,
             avgBMI,
           }}
         />
@@ -315,13 +426,6 @@ export default function ComparisonView({
           />
 
           <StatRow
-            label="Sleep Quality"
-            userValue={formatValue(userInput?.sleepQuality, "/10")}
-            occupationValue={formatValue(avgQuality, "/10")}
-            better={compareHigherBetter(userInput?.sleepQuality, avgQuality)}
-          />
-
-          <StatRow
             label="Stress Level"
             userValue={formatValue(userInput?.stress, "/10")}
             occupationValue={formatValue(avgStress, "/10")}
@@ -329,10 +433,10 @@ export default function ComparisonView({
           />
 
           <StatRow
-            label="Physical Activity"
-            userValue={formatValue(userInput?.activity)}
-            occupationValue={formatValue(avgActivity)}
-            better={compareHigherBetter(userInput?.activity, avgActivity)}
+            label="Physical Activity Level"
+            userValue={formatValue(userInput?.activityLevel, "/10")}
+            occupationValue={formatValue(avgActivity, "/10")}
+            better={compareHigherBetter(userInput?.activityLevel, avgActivity)}
           />
 
           <StatRow
@@ -343,24 +447,10 @@ export default function ComparisonView({
           />
 
           <StatRow
-            label="Blood Pressure"
-            userValue={formatValue(userInput?.bloodPressure)}
-            occupationValue={formatValue(bpAvg)}
-            better={compareBP()}
-          />
-
-          <StatRow
             label="Heart Rate"
             userValue={formatValue(userInput?.heartRate, " bpm")}
             occupationValue={formatValue(avgHeartRate, " bpm")}
             better={compareLowerBetter(userInput?.heartRate, avgHeartRate)}
-          />
-
-          <StatRow
-            label="Daily Steps"
-            userValue={formatValue(userInput?.steps)}
-            occupationValue={formatValue(avgSteps)}
-            better={compareHigherBetter(userInput?.steps, avgSteps)}
           />
 
           <StatRow
