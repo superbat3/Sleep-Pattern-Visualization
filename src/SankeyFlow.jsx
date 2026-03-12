@@ -16,12 +16,6 @@ const SLEEP_COLORS = {
   Long: "#D7EBDD",
 };
 
-function stressBucket(level) {
-  if (!Number.isFinite(level)) return null;
-  if (level <= 4) return "Low";
-  if (level <= 6) return "Medium";
-  return "High";
-}
 
 function sleepBucket(hours) {
   if (!Number.isFinite(hours)) return null;
@@ -117,7 +111,7 @@ export default function SankeyFlow({
 
     for (const row of data) {
       const occupation = (row?.occupation ?? "").trim();
-      const stress = stressBucket(Number(row?.stress));
+      const stress = row?.stressBucket;
       const sleep = sleepBucket(Number(row?.sleepDuration));
 
       if (!occupation || !stress || !sleep) continue;
