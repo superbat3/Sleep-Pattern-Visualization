@@ -17,7 +17,7 @@ const EMPTY_DATA = [];
 const ALLOWED_OCCUPATIONS = [
   "Management",
   "Healthcare",
-  "Protective_Service",
+  "Production",
   "Food_Preparation_Serving",
   "Sales",
   "Office_Administrative_Support",
@@ -27,7 +27,7 @@ const ALLOWED_OCCUPATIONS = [
 const OCC_LABELS = {
   Management: "Management",
   Healthcare: "Healthcare",
-  Protective_Service: "Protective Service",
+  Production: "Production",
   Food_Preparation_Serving: "Food Service",
   Sales: "Sales",
   Office_Administrative_Support: "Office / Admin Support",
