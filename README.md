@@ -1,16 +1,68 @@
-# React + Vite
+# Sleep Patterns Visualization Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a **React + Vite visualization dashboard** that explores relationships between sleep patterns, lifestyle factors, and health indicators using the **Sleep Health and Lifestyle dataset** and the **NHANES sleep dataset**.
 
-Currently, two official plugins are available:
+The dashboard contains multiple interactive visualizations such as scatter plots, Sankey diagrams, histograms, and comparison views to help analyze how sleep varies across occupations, stress levels, and health markers.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+# Authors
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Alex Gao  
+Ejiroghene (Ej) Uwhuba  
+Tejas Khode
 
-## Expanding the ESLint configuration
+# Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Install Dependencies
+
+Install all required packages listed in `package.json`.
+
+npm install
+
+This installs React, Vite, D3, and other dependencies needed to run the project.
+
+---
+
+## Run the Development Server
+
+Start the Vite development server:
+
+npm run dev
+
+After running the command, Vite will display a local development URL similar to:
+
+http://localhost:5173
+
+Open this URL in your browser to view the dashboard.
+
+Vite supports **Hot Module Reloading (HMR)**, so any changes you make to the code will automatically update in the browser.
+
+---
+
+# Node Version Requirement
+
+Vite requires **Node.js version 20.19 or newer**.
+
+Check your version:
+
+node -v
+
+If needed, install using nvm:
+
+nvm install 20  
+nvm use 20  
+
+---
+
+# Building for Production
+
+To create a production build:
+
+npm run build
+
+To preview the production build locally:
+
+npm run preview
+
+---
