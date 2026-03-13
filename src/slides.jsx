@@ -206,10 +206,6 @@ export const slides = (data) => [
             blood pressure percentage highlight occupations with stronger health-risk combinations.
           </li>
 
-          <li>
-            <b>Linked filtering</b> makes it easier to compare occupations, genders, and age groups
-            and see how those differences affect both sleep and health indicators.
-          </li>
         </ul>
 
         <p>
