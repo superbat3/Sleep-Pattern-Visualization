@@ -202,7 +202,7 @@ export default function ScatterPlot({ data }) {
         />
 
         <text
-          x={pad.left - 10}
+          x={pad.left - 28}
           y={pad.top + 2}
           fontSize="11"
           textAnchor="end"
@@ -211,7 +211,7 @@ export default function ScatterPlot({ data }) {
           Sleep
         </text>
         <text
-          x={pad.left - 10}
+          x={pad.left - 28}
           y={pad.top + 14}
           fontSize="10"
           textAnchor="end"

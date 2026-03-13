@@ -187,9 +187,10 @@ export default function BarChart({ data }) {
               </text>
 
               <text
-                transform={`translate(${15 + xPos}, ${pad.top + innerH + 18}) rotate(0)`}
+                x={xPos}
+                y={pad.top + innerH + 18}
                 fontSize="11"
-                textAnchor="end"
+                textAnchor="middle"
                 opacity="0.75"
               >
                 {d.occupation.replaceAll("_", " ")}

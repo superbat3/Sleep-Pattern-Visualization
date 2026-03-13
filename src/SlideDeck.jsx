@@ -99,7 +99,6 @@ export default function SlideDeck({ slides, onFinish, onSlideChange }) {
           "100%": { transform: "translateY(0px)" },
         },
       }}
-      onClick={onClickHalfNav}
     >
       <Box
         sx={{
