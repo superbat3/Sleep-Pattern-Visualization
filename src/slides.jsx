@@ -87,7 +87,7 @@ export const slides = (data) => [
 
         <p>
           Even though sleep is so central, many people rarely stop to think about how lifestyle,
-          work demands, and occupation shape the quality and consistency of their sleep. This
+          work demands, and their jobs shape the quality and consistency of their sleep. This
           visualization explores those patterns through a dataset of sleep, stress, and health
           indicators across different professions.
         </p>
@@ -153,12 +153,6 @@ export const slides = (data) => [
           </li>
 
           <li>
-            <b>Production roles</b> show the widest sleep spread (<b>1.65h standard deviation</b>),
-            while <b>Management</b> is the tightest cluster (1.14h), showing different sleep
-            consistency profiles by occupation.
-          </li>
-
-          <li>
             <b>Transportation / Material Moving</b> shows the highest sleep-disorder prevalence
             (<b>23.1%</b>), followed by <b>Sales</b> (<b>19.1%</b>).
           </li>
@@ -186,8 +180,7 @@ export const slides = (data) => [
     body: (
       <>
         <p>
-          The dashboard uses consistent encodings to surface patterns quickly. These encodings help
-          expose several non-obvious findings in the data:
+          The to help expose several non-obvious findings in the dataset:
         </p>
 
         <ul>
@@ -209,7 +202,7 @@ export const slides = (data) => [
         </ul>
 
         <p>
-          These encodings are not just decorative — they are designed to reveal relationships
+          These encodings in the dashboard reveal relationships
           between occupation, lifestyle, sleep outcomes, and health risks.
         </p>
       </>
@@ -224,7 +217,6 @@ export const slides = (data) => [
     highlights: [
       "Pick one occupation and scan all tiles",
       "Use Sankey to trace likely pathways",
-      "Compare two occupations before filtering",
     ],
     body: (
       <>
@@ -235,8 +227,8 @@ export const slides = (data) => [
 
         <ul>
           <li>
-            Occupations with <b>high stress and low activity</b> often tend to have the
-            <b> lowest sleep quality</b>.
+            Occupations with <b>high stress and low activity</b> often tend to have
+            <b> lower sleep quality</b>.
           </li>
 
           <li>
@@ -244,10 +236,6 @@ export const slides = (data) => [
             <b> wider sleep duration distributions</b>.
           </li>
 
-          <li>
-            <b>Sleep disorders</b> do not appear evenly across occupations. Some cluster more around
-            insomnia, while others show stronger signs of apnea-related risk.
-          </li>
 
           <li>
             Elevated blood pressure appears strongly associated with combinations of
